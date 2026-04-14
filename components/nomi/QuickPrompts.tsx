@@ -6,12 +6,7 @@ interface QuickPromptsProps {
   variant?: 'compact' | 'hero';
 }
 
-const PROMPTS = [
-  'How is my reactivation campaign doing?',
-  'I want to activate my dormant guests.',
-  'Who are my at-risk VIPs?',
-  "Show me this week's opportunities.",
-];
+const PROMPTS = ['I want to activate my dormant guests.'];
 
 export function QuickPrompts({
   onPick,
