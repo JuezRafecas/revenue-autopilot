@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
 
 type Integration = {
   id: string;
@@ -177,6 +178,27 @@ export function IntegrationsClient() {
         ))}
       </div>
 
+      {/* Custom Data — CSV upload */}
+      <div className="border-t border-hairline pt-6 mt-16">
+        <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 md:gap-10">
+          <div>
+            <div
+              className="font-mono text-[10px] uppercase mb-2"
+              style={{ letterSpacing: '0.18em', color: 'var(--k-green, #0e5e48)' }}
+            >
+              Custom Data
+            </div>
+            <div
+              className="k-italic-serif text-[18px] leading-snug"
+              style={{ color: 'var(--fg-subtle)' }}
+            >
+              Upload your own guest base
+            </div>
+          </div>
+          <CustomDataUploader />
+        </div>
+      </div>
+
       {toast && (
         <div
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-2 px-5 py-3 animate-[fade-up_.3s_ease-out]"
@@ -307,6 +329,89 @@ function ToggleSwitch({
         }}
       />
     </button>
+  );
+}
+
+function CustomDataUploader() {
+  const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (file: File | null) => {
+    if (!file) return;
+    setError(null);
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Solo se aceptan archivos .csv');
+      setFileName(null);
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setError('El archivo supera el límite de 50 MB');
+      setFileName(null);
+      return;
+    }
+    setFileName(file.name);
+  };
+
+  return (
+    <div>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          handleFile(e.dataTransfer.files[0] ?? null);
+        }}
+        onClick={() => inputRef.current?.click()}
+        className={`
+          cursor-pointer border border-dashed p-12 text-center transition-colors duration-200
+          ${dragging ? 'border-accent bg-accent/5' : 'border-hairline-strong hover:border-fg-subtle'}
+        `}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".csv"
+          className="sr-only"
+          onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+        />
+        <div className="font-mono text-[11px] uppercase tracking-[0.15em] text-fg-subtle">
+          {fileName ? `✓ ${fileName}` : 'Drop your CSV here · or click to choose'}
+        </div>
+        <div className="font-mono text-[10px] mt-2 text-fg-faint uppercase tracking-label">
+          Máximo 50 MB
+        </div>
+      </div>
+
+      {error && (
+        <div
+          className="mt-4 px-4 py-3 font-mono text-[11px] uppercase tracking-label"
+          role="alert"
+          style={{
+            color: 'var(--accent-dim)',
+            background: 'rgba(230,120,76,0.06)',
+            border: '1px solid var(--accent)',
+          }}
+        >
+          {error}
+        </div>
+      )}
+
+      <div className="mt-6 flex items-center gap-4">
+        <Button variant="primary" disabled={!fileName}>
+          Process base
+        </Button>
+        <span className="font-mono text-[11px] text-fg-subtle uppercase tracking-label">
+          Expected format:{' '}
+          <span className="text-fg-muted">guest_name, phone, email, visit_date, …</span>
+        </span>
+      </div>
+    </div>
   );
 }
 

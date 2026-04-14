@@ -24,7 +24,6 @@ const NAV: NavItem[] = [
   { href: '/revenue', label: 'Revenue' },
   { href: '/integrations', label: 'Integrations' },
   { href: '/settings', label: 'Settings' },
-  { href: '/upload', label: 'Upload data' },
 ];
 
 interface SidebarProps {
@@ -157,7 +156,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose, pendingCount = 0 }:
     <>
       {/* Desktop sidebar */}
       <aside
-        className="hidden md:flex w-[232px] shrink-0 flex-col min-h-screen sticky top-0"
+        className="hidden md:flex w-[232px] shrink-0 flex-col h-screen sticky top-0 overflow-y-auto"
         style={{
           background: 'var(--bg-sunken)',
           borderRight: '1px solid var(--hairline)',
