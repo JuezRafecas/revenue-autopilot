@@ -98,9 +98,17 @@ export function IntegrationsClient() {
     }
   }
   const [state, setState] = useState<Record<string, boolean>>(initial);
+  const [toast, setToast] = useState<string | null>(null);
 
   const total = Object.keys(state).length;
   const active = Object.entries(state).filter(([id, on]) => on && AVAILABLE.has(id)).length;
+
+  const handleToggle = (id: string, name: string) => {
+    const next = !state[id];
+    setState((s) => ({ ...s, [id]: next }));
+    setToast(next ? `${name} conectada` : `${name} desconectada`);
+    setTimeout(() => setToast(null), 2200);
+  };
 
   return (
     <section className="editorial-container pt-16 pb-24">
@@ -159,9 +167,7 @@ export function IntegrationsClient() {
                       integration={item}
                       available={available}
                       on={!!state[item.id]}
-                      onToggle={() =>
-                        setState((s) => ({ ...s, [item.id]: !s[item.id] }))
-                      }
+                      onToggle={() => handleToggle(item.id, item.name)}
                     />
                   );
                 })}
@@ -170,6 +176,26 @@ export function IntegrationsClient() {
           </div>
         ))}
       </div>
+
+      {toast && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 inline-flex items-center gap-2 px-5 py-3 animate-[fade-up_.3s_ease-out]"
+          role="status"
+          style={{
+            background: 'var(--fg)',
+            color: 'var(--bg)',
+            fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
+            fontSize: 12,
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            boxShadow: '0 8px 24px -8px rgba(21,20,17,0.3)',
+          }}
+        >
+          <span aria-hidden style={{ color: 'var(--k-green)' }}>●</span>
+          {toast}
+        </div>
+      )}
     </section>
   );
 }

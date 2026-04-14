@@ -218,7 +218,7 @@ export function NomiChat({
         )}
         {error && (
           <div
-            className="my-3 py-2 px-3"
+            className="my-3 py-2 px-3 flex items-start gap-3"
             style={{
               fontFamily: SANS_STACK,
               color: 'var(--accent-dim)',
@@ -227,7 +227,29 @@ export function NomiChat({
               background: 'rgba(230,120,76,0.05)',
             }}
           >
-            {truncateError(error.message)}
+            <span className="flex-1">{truncateError(error.message)}</span>
+            <button
+              type="button"
+              onClick={() => {
+                const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+                if (lastUserMsg) {
+                  const text = lastUserMsg.parts
+                    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+                    .map((p) => p.text)
+                    .join('');
+                  if (text) sendMessage({ text });
+                }
+              }}
+              className="shrink-0 text-[10px] uppercase font-[600] px-2 py-1 transition-colors hover:bg-[rgba(230,120,76,0.1)]"
+              style={{
+                letterSpacing: '0.12em',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent)',
+                fontFamily: SANS_STACK,
+              }}
+            >
+              Reintentar
+            </button>
           </div>
         )}
       </div>

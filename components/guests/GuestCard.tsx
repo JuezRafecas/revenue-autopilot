@@ -18,7 +18,7 @@ export function GuestCard({ id, name, segment, total_visits, days_since_last }: 
       className="group flex items-center gap-4 py-4 border-b border-hairline hover:bg-bg-raised transition-colors duration-150"
     >
       <span
-        className="h-1.5 w-1.5 rounded-full shrink-0"
+        className="h-2.5 w-2.5 rounded-full shrink-0"
         style={{ backgroundColor: SEGMENT_HEX[segment] }}
       />
       <div

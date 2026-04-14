@@ -100,10 +100,10 @@ export function CampaignRow({ campaign, index = 0 }: { campaign: Campaign; index
 
           <div className="text-right">
             <span
-              className="inline-flex items-center gap-1.5 text-[10.5px] uppercase font-[600] px-3 py-1.5 transition-colors group-hover:bg-[var(--k-green)] group-hover:text-[var(--bg)] group-hover:border-[var(--k-green)]"
+              className="inline-flex items-center gap-1.5 text-[10.5px] uppercase font-[600] px-3 py-1.5 transition-colors group-hover:bg-[var(--fg)] group-hover:text-[var(--bg)]"
               style={{
                 letterSpacing: '0.16em',
-                border: '1px solid var(--fg)',
+                border: '1.5px solid var(--fg)',
                 color: 'var(--fg)',
                 fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
               }}

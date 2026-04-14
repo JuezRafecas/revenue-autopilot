@@ -1,8 +1,12 @@
+import type { Metadata } from 'next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Header } from '@/components/layout/Header';
 import { Label } from '@/components/ui/Label';
-import { Button } from '@/components/ui/Button';
 import { MOCK_RESTAURANT } from '@/lib/mock';
+
+export const metadata: Metadata = {
+  title: 'Configuración · Revenue Autopilot',
+};
 
 export default function SettingsPage() {
   return (
@@ -34,9 +38,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="mt-16 flex items-center gap-3">
-          <Button variant="primary">Save changes</Button>
-          <Button variant="link">Cancel</Button>
+        <div className="mt-16">
+          <p
+            className="font-mono text-[11px] uppercase"
+            style={{ letterSpacing: '0.1em', color: 'var(--fg-subtle)' }}
+          >
+            Para modificar estos datos, contactá a soporte.
+          </p>
         </div>
       </section>
     </AppShell>
@@ -47,10 +55,22 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
   return (
     <div className="grid grid-cols-[160px_1fr] gap-8 items-baseline border-b border-hairline pb-5">
       <Label>{label}</Label>
-      <div className={mono ? 'font-mono text-[15px] text-fg' : 'font-display italic text-xl text-fg'}
-        style={!mono ? { fontVariationSettings: '"opsz" 144, "SOFT" 50' } : undefined}
-      >
-        {value}
+      <div className="flex items-center gap-3">
+        <div className={mono ? 'font-mono text-[15px] text-fg' : 'font-display italic text-xl text-fg'}
+          style={!mono ? { fontVariationSettings: '"opsz" 144, "SOFT" 50' } : undefined}
+        >
+          {value}
+        </div>
+        <span
+          className="text-[9px] uppercase font-mono px-1.5 py-0.5"
+          style={{
+            letterSpacing: '0.1em',
+            color: 'var(--fg-subtle)',
+            border: '1px solid var(--hairline)',
+          }}
+        >
+          solo lectura
+        </span>
       </div>
     </div>
   );

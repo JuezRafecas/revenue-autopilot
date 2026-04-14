@@ -65,7 +65,7 @@ export function FilterBar({ options, value, onChange, label, className }: Props)
             )}
             style={{
               letterSpacing: '0.16em',
-              color: active ? 'var(--fg)' : 'var(--fg-subtle)',
+              color: active ? 'var(--fg)' : 'var(--fg-muted)',
               borderBottom: active ? '2px solid var(--fg)' : '2px solid transparent',
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
@@ -82,7 +82,7 @@ export function FilterBar({ options, value, onChange, label, className }: Props)
               <span
                 className="font-mono text-[10px] tabular-nums"
                 style={{
-                  color: active ? 'var(--accent)' : 'var(--fg-faint)',
+                  color: active ? 'var(--accent)' : 'var(--fg-subtle)',
                   letterSpacing: '0.04em',
                   fontWeight: 500,
                 }}

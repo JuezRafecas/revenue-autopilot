@@ -1,8 +1,13 @@
+import type { Metadata } from 'next';
 import { AppShell } from '@/components/layout/AppShell';
 import { Header } from '@/components/layout/Header';
 import { Label } from '@/components/ui/Label';
 import { Numeral } from '@/components/ui/Numeral';
 import { formatARS } from '@/lib/constants';
+
+export const metadata: Metadata = {
+  title: 'Revenue · Revenue Autopilot',
+};
 
 const LEDGER = [
   { date: '2026-04-14', action: 'Reactivation · Dormant', sent: 47, converted: 4, revenue: 189_000 },

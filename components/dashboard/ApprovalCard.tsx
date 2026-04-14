@@ -124,12 +124,22 @@ export function ApprovalCard({ message, onApprove, onPass }: Props) {
         </div>
       )}
 
-      <p
-        className="text-[13px] leading-snug line-clamp-3"
-        style={{ color: 'var(--fg-muted)' }}
-      >
-        {message.content}
-      </p>
+      <div className="relative">
+        <p
+          className="text-[13px] leading-snug line-clamp-3"
+          style={{ color: 'var(--fg-muted)' }}
+        >
+          {message.content}
+        </p>
+        {message.content && message.content.length > 140 && (
+          <span
+            className="text-[10px] uppercase font-mono mt-1 inline-block"
+            style={{ color: 'var(--fg-subtle)', letterSpacing: '0.1em' }}
+          >
+            ver mensaje completo →
+          </span>
+        )}
+      </div>
 
       <div className="flex items-center justify-between gap-2 mt-auto pt-1 flex-wrap">
         <div className="flex items-center gap-2">

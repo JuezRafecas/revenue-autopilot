@@ -145,13 +145,14 @@ export function WorkflowDiagram({ workflow, accent = 'active', activePathIds }: 
   const activeSet = new Set(activePathIds ?? []);
 
   return (
-    <div className="relative border border-hairline bg-bg-raised p-10 md:p-16 overflow-x-auto">
+    <div className="relative border border-hairline bg-bg-raised p-6 md:p-16">
       <div className="flex items-center justify-between mb-10">
         <Label>Workflow</Label>
         <Label>{workflow.length} steps</Label>
       </div>
 
-      <div className="flex flex-col items-stretch gap-6 min-w-[600px]">
+      <div className="overflow-x-auto -mx-6 px-6 md:mx-0 md:px-0">
+      <div className="flex flex-col items-stretch gap-6 min-w-[480px]">
         {rows.map((row, rowIdx) => (
           <div
             key={rowIdx}
@@ -197,6 +198,7 @@ export function WorkflowDiagram({ workflow, accent = 'active', activePathIds }: 
             ))}
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

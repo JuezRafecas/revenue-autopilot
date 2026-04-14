@@ -190,20 +190,23 @@ export function SessionMenu({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
+                          if (!window.confirm('¿Borrar esta conversación?')) return;
                           deleteSession(s.id);
                           setSessions(listSessions());
                           if (isActive) onNewSession();
                         }}
-                        className="k-mono opacity-0 group-hover:opacity-100 px-3 transition-opacity"
+                        className="k-mono opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
                         style={{
                           color: 'var(--fg-subtle)',
-                          fontSize: 11,
+                          fontSize: 13,
                           cursor: 'pointer',
                           background: 'transparent',
                           border: 'none',
+                          width: 36,
+                          minHeight: 36,
                         }}
-                        aria-label="Delete session"
-                        title="Delete"
+                        aria-label={`Borrar conversación: ${s.title || 'Sin título'}`}
+                        title="Borrar"
                       >
                         ✕
                       </button>

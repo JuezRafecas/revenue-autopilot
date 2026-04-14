@@ -13,8 +13,21 @@ export function CSVUploader({
   const [fileName, setFileName] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleFile = (file: File | null) => {
     if (!file) return;
+    setError(null);
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Solo se aceptan archivos .csv');
+      setFileName(null);
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      setError('El archivo supera el límite de 50 MB');
+      setFileName(null);
+      return;
+    }
     setFileName(file.name);
     onFile?.(file);
   };
@@ -62,7 +75,24 @@ export function CSVUploader({
         <div className="font-mono text-[11px] uppercase tracking-[0.15em] text-fg-subtle">
           {fileName ? `✓ ${fileName}` : 'Drop your CSV here · or click to choose'}
         </div>
+        <div className="font-mono text-[10px] mt-2 text-fg-faint uppercase tracking-label">
+          Máximo 50 MB
+        </div>
       </div>
+
+      {error && (
+        <div
+          className="mt-4 px-4 py-3 font-mono text-[11px] uppercase tracking-label"
+          role="alert"
+          style={{
+            color: 'var(--accent-dim)',
+            background: 'rgba(230,120,76,0.06)',
+            border: '1px solid var(--accent)',
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       <div className="mt-12 flex items-center gap-4">
         <Button variant="primary" disabled={!fileName}>

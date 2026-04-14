@@ -21,18 +21,16 @@ export function EmptyState({ title, hint, cta, icon }: Props) {
       ) : (
         <div
           aria-hidden
-          className="mb-5 w-10 h-10 relative"
+          className="mb-5 w-10 h-10 relative flex items-center justify-center"
           style={{
             background: 'var(--bg-sunken)',
             border: '1px solid var(--hairline-strong)',
           }}
         >
-          <span
-            className="absolute inset-0 flex items-center justify-center text-[14px]"
-            style={{ color: 'var(--fg-subtle)' }}
-          >
-            ∅
-          </span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--fg-subtle)" strokeWidth="1.5" strokeLinecap="square">
+            <rect x="3" y="3" width="18" height="18" rx="0" />
+            <path d="M9 9l6 6M15 9l-6 6" />
+          </svg>
         </div>
       )}
       <div
