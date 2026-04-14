@@ -14,15 +14,19 @@
     "reset": "tsx scripts/reset.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.69",
+    "@ai-sdk/react": "^3.0.161",
     "@anthropic-ai/sdk": "^0.32.1",
     "@supabase/supabase-js": "^2.45.4",
+    "ai": "^6.0.159",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",
     "next": "^15.0.3",
     "papaparse": "^5.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.12.7"
+    "recharts": "^2.12.7",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",

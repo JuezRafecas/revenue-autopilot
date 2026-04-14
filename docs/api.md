@@ -28,13 +28,15 @@ Fuente de verdad de la API HTTP del proyecto. Cada cambio en `app/api/**` actual
 
 ## 1. Data disponible (qué tenemos en los CSVs de La Cabrera)
 
-Antes de diseñar, vale entender qué data cruda tenemos. Los CSVs bajo el root del repo son la fuente del hackathon:
+Antes de diseñar, vale entender qué data cruda tenemos. Los CSVs bajo el root del repo son la fuente del hackathon, y se importan **1:1** a las tablas `cdp_*` de la migración [`003_cdp_raw.sql`](../supabase/migrations/003_cdp_raw.sql) sin pérdida de información:
 
-| Archivo | Filas | Rol |
-|---|---|---|
-| `la_cabrera_cdp_visit.csv` | 18.725 | Fact table de visitas (reservas) |
-| `la_cabrera_guest_partner.csv` | 60.280 | Guest agregado por restaurante — fuente principal del `GuestProfile` |
-| `la_cabrera_guest_unified.csv` | 56.049 | Guest unificado cross-tenant |
+| CSV | Filas | Tabla raw (migración 003) | Rol |
+|---|---|---|---|
+| `la_cabrera_cdp_visit.csv` | 18.725 | `cdp_visits` (PK `visit_id text`) | Fact table de visitas (reservas) |
+| `la_cabrera_guest_partner.csv` | 60.280 | `cdp_guest_partners` (PK `guest_partner_id text`) | Guest × restaurante — espejo del guest_partner |
+| `la_cabrera_guest_unified.csv` | 56.049 | `cdp_guest_unified` (PK `guest_id text`) | Guest unificado cross-tenant |
+
+> Las tablas `cdp_*` son de **sólo lectura** después del import. Cualquier mutación (segmentación, campañas, mensajes) vive en el app layer (ver §2.0). El header de `003_cdp_raw.sql` lo dice textual: *"No FKs to app tables: the CDP export does not carry a cdp_visit ↔ cdp_guest_partner link (known gap)."* Ese gap se resuelve por los `visitId` embebidos en los insights de `cdp_guest_partners` — más abajo.
 
 ### Visitas (39 columnas)
 
@@ -90,7 +92,52 @@ Mismo guest en varios partners con versiones `_global` de los contadores. En el 
 
 ## 2. Entidades
 
-Cada entidad mapea 1:1 a una tabla de Supabase y a un type en [`lib/types.ts`](../lib/types.ts). Acá resumo; la referencia completa vive en los archivos linkeados.
+Cada entidad mapea a una tabla de Supabase y a un type en [`lib/types.ts`](../lib/types.ts). Acá resumo; la referencia completa vive en los archivos linkeados.
+
+### 2.0 Arquitectura de datos — dos capas
+
+El schema está partido en dos capas con roles distintos:
+
+```text
+┌─────────────────────────── RAW CDP layer (migración 003) ───────────────────────────┐
+│                                                                                      │
+│   cdp_visits          cdp_guest_partners          cdp_guest_unified                  │
+│   ┌───────────┐       ┌────────────────────┐       ┌─────────────────┐              │
+│   │ visit_id  │       │ guest_partner_id   │       │ guest_id        │              │
+│   │  (text PK)│       │  (text PK)         │       │  (text PK)      │              │
+│   │ + 38 cols │       │ + 69 cols          │       │ + 62 cols       │              │
+│   │ 1:1 CSV   │       │ + guarantee_       │       │ (cross-tenant)  │              │
+│   └───────────┘       │   insights jsonb   │       └─────────────────┘              │
+│         ▲             │ + cancellation_    │                                          │
+│         │             │   insights jsonb   │                                          │
+│         │             │ + review_insights  │                                          │
+│         │             │ + channel_insights │                                          │
+│         │             │ + waitlist_insights│                                          │
+│         │             └─────────┬──────────┘                                          │
+│         │                       │                                                     │
+│         └─────── visitId arrays dentro de los *_insights ──                          │
+│                  (único puente cdp_visit ↔ cdp_guest_partner)                        │
+└─────────────────────────────────┬────────────────────────────────────────────────────┘
+                                  │ proyección (cdpGuestPartnerToProfile)
+                                  ▼
+┌─────────────────────── APP / domain layer (migraciones 001 + 002) ─────────────────┐
+│                                                                                      │
+│  restaurants  →  guests  ⟷  guest_profiles   ⟵ acá vive el "guest_partner" a        │
+│                    │            │               nivel app (uno por par guest×rest)   │
+│                    │            │                                                    │
+│                    ▼            ▼                                                    │
+│                  visits     campaigns → messages → attributions                      │
+│                                │                                                     │
+│                                └─ events                                              │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Reglas**:
+- La capa raw (`cdp_*`) es la **fuente de verdad de los CSVs**. Se toca sólo al importar.
+- La capa app es lo que **leen y mutan** la UI, la segmentación, las campañas, los mensajes y la atribución.
+- Cada row de `guest_profiles` **es** un guest_partner: uno por cada relación guest × restaurante, con todos los agregados (RFM, segmento, tier, preferencias) materializados. La tabla `guests` existe al lado como contenedor thin de identidad/contacto (`name`, `email`, `phone`, opt-ins).
+- El **único puente visit ↔ guest_partner** está en los `visitId` embebidos en los insights de `cdp_guest_partners` (ver §2.5). Cualquier endpoint que pregunte "las visitas de este guest" resuelve por ahí.
+
 
 ### 2.1 `Restaurant`
 
@@ -105,64 +152,131 @@ Cada entidad mapea 1:1 a una tabla de Supabase y a un type en [`lib/types.ts`](.
 
 Tabla: `restaurants`.
 
-### 2.2 `GuestPartner` (unidad real)
+### 2.2 `Guest` (capa app — identidad/contacto)
 
-La entidad `Guest` pelada (persona física cross-tenant) **no es una entidad de primer orden en este producto**. Lo que importa es la relación **guest × partner** — la misma persona en distintos restaurantes son filas distintas, y todas las métricas, segmento y acciones se calculan en ese scope. El CSV `la_cabrera_guest_partner.csv` es literalmente esa unidad.
-
-A nivel DB vive en la tabla `guests` (manteniendo el nombre legado para no romper el schema), con los campos que hay que sumar para reflejar el modelo:
+Thin. Existe para que `campaigns`, `messages`, `events` y `attributions` tengan una FK estable hacia la identidad del destinatario. **No es la unidad de segmentación ni de acciones** — eso vive en `guest_profiles` (§2.4). Hay exactamente un `guests` row por cada `guest_profiles` row.
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` | uuid | PK interna |
-| `guest_partner_id` | text | External ID del CSV (hash tipo `CC5AB85BC1790384FA650EF5306B3414`). Unique por `restaurant_id`. **A agregar** al schema. |
-| `restaurant_id` | uuid | FK → `restaurants` — el "partner" del guest_partner |
-| `name` | string | `guest_name` del CSV |
-| `email` | string \| null | `guest_email` del CSV |
-| `phone` | string \| null | Casi siempre `null` con la data de La Cabrera |
-| `language` | string \| null | `guest_language` |
+| `id` | uuid | PK |
+| `restaurant_id` | uuid | FK → `restaurants`. Un `guests` row representa "guest × restaurante" — si la misma persona aparece en dos restaurantes, son dos rows |
+| `name` | text | |
+| `phone` | text \| null | Casi siempre `null` con la data de La Cabrera |
+| `email` | text \| null | |
 | `opt_in_whatsapp` | boolean | Default `true` |
 | `opt_in_email` | boolean | Default `true` |
-| `partner_tags` | string[] | |
-| `special_relationship` | string \| null | |
-| `food_restrictions` | string \| null | |
-| `is_banned` | boolean | |
+| `created_at` | timestamptz | |
 
-Tabla: `guests` (renombrado conceptualmente a GuestPartner; opcional: agregar `guest_partner_id` como columna unique).
+Tabla: `guests`. Definida en [`001_initial_schema.sql`](../supabase/migrations/001_initial_schema.sql) + extendida con opt-ins en [`002_campaigns.sql`](../supabase/migrations/002_campaigns.sql).
 
-> **Naming**: en los paths de la API usamos `guest_partner` / `guest-partners`. A nivel TS podemos seguir llamando a la interfaz `Guest` en `lib/types.ts` (sin forzar un rename del tipo) pero el modelo mental y la documentación hablan de `GuestPartner`.
+### 2.3 `Visit` (capa app)
 
-### 2.3 `Visit`
-
-El visit NO tiene columna de guest en el CSV. El vínculo con el `GuestPartner` se resuelve siempre via los `visitId` de los insights (ver §1). En DB tenemos dos opciones:
-
-1. **Ingestión eager** (recomendado): al importar el `guest_partner_file`, recorremos los insights y construimos un map `{ external_visit_id → guest_partner_id }`. Al insertar cada visit desde `visit_file` ponemos `guest_id` con el lookup. Visits sin match quedan con `guest_id = null` (son visitas que no aparecen en ningún bookings[]/cancellations[]).
-2. **Resolución lazy** (fallback): si no hay tiempo para la indexación eager, dejamos `guest_id = null` siempre y el endpoint de visitas por guest-partner (§3.2) resuelve sobre la marcha leyendo los insights y haciendo `visits.where('external_visit_id').in(...)`.
+Fact table del dominio. La raw (`cdp_visits`) tiene 39 columnas; la app-layer `visits` se queda con un subset manejable para segmentación + atribución. Se puede hidratar desde `cdp_visits` al proyectar, o consultar `cdp_visits` directo para analytics que necesiten los campos completos.
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` | uuid | PK interna |
-| `external_visit_id` | text | El `visit_id` del CSV (MongoDB ObjectId-style: `69b03705dc7dc47bd1858838`). Unique. **A agregar** al schema — es la única key compartida entre el CSV de visits y los insights del guest_partner. |
-| `guest_id` | uuid \| null | FK → `guests`. Nullable porque no toda visit está linkeada a un guest_partner via insights. |
+| `id` | uuid | PK |
+| `guest_id` | uuid | FK → `guests` (nullable si no hay match vía insights — el CDP no linkea directo) |
 | `restaurant_id` | uuid | FK → `restaurants` |
-| `visit_date` | ISO string | `visited_at` del CSV |
-| `party_size` | number | |
-| `amount` | number \| null | ARS. `null` cuando no hay garantía |
-| `shift` | string \| null | `'lunch' \| 'dinner'` |
-| `day_of_week` | string \| null | Derivado de `visited_at` |
-| `sector` | string \| null | `sector_name` |
-| `channel` | string \| null | `SHARED_LINK`, `SEARCH_ENGINE`, `QUICK_ADD`, etc. |
-| `visit_type` | string | `'reservation' \| 'walkin'` |
-| `outcome` | string | `'completed' \| 'cancelled' \| 'no_show' \| 'pending'` |
-| `score` | number \| null | Siempre `null` con La Cabrera |
-| `review_comment` | string \| null | Siempre `null` con La Cabrera |
+| `visit_date` | timestamptz | `visited_at` del CSV raw |
+| `party_size` | int | |
+| `amount` | decimal(10,2) | ARS. `null` cuando no hay garantía |
+| `shift` | text | `'lunch' \| 'dinner'` |
+| `day_of_week` | text | Derivado |
+| `sector` | text | `sector_name` |
+| `visit_type` | text | `'reservation' \| 'walkin'` |
+| `outcome` | text | `'completed' \| 'cancelled' \| 'no_show' \| 'pending'` (derivado del `state` del CDP) |
+| `score` | decimal(3,1) | Siempre `null` con La Cabrera |
+| `review_comment` | text | Siempre `null` con La Cabrera |
+| `created_at` | timestamptz | |
 
-Tabla: `visits`.
+Tabla: `visits` (migración 001). La "copia canónica" de cada fila vive también en `cdp_visits.visit_id` (el hash), para poder resolver los `visitId` embebidos en los insights.
 
-### 2.4 `GuestProfile`
+### 2.4 `GuestProfile` — **el guest_partner a nivel app**
 
-Agregado denormalizado del `GuestPartner` con el segmento ya resuelto. Campos core: `total_visits`, `total_no_shows`, `total_cancellations`, `first_visit_at`, `last_visit_at`, `days_since_last`, `avg_days_between_visits`, `avg_party_size`, `avg_amount`, `total_spent`, `avg_score`, `preferred_shift`, `preferred_day_of_week`, `preferred_sector`, `rfm_recency`, `rfm_frequency`, `rfm_monetary`, `rfm_score`, `segment`, `tier`, `calculated_at`.
+Un row en `guest_profiles` es la unidad operativa del producto: un guest × un restaurante, con todos los agregados materializados, el segmento asignado y el tier calculado. La UI de segmentos, las audiencias de las campañas, la generación de mensajes y la atribución trabajan contra esta tabla.
 
-**Insights JSONB** (espejo de los JSON embebidos en el CSV, persistidos tal cual para no perder información):
+Relación 1:1 con `guests` vía `guest_profiles.guest_id unique references guests(id)`. Para obtener "el guest_partner N" hay que leer el par `guest_profiles ⟕ guests` por `guest_id`.
+
+```ts
+interface GuestProfile {
+  id: string;                        // uuid
+  guest_id: string;                  // uuid, FK → guests, unique
+  restaurant_id: string;             // uuid, FK → restaurants
+  total_visits: number;
+  total_no_shows: number;
+  total_cancellations: number;
+  first_visit_at: string | null;
+  last_visit_at: string | null;
+  days_since_last: number | null;
+  avg_days_between_visits: number | null;
+  avg_party_size: number | null;
+  avg_amount: number | null;
+  total_spent: number | null;
+  avg_score: number | null;
+  preferred_shift: string | null;
+  preferred_day_of_week: string | null;
+  preferred_sector: string | null;
+  rfm_recency: number | null;
+  rfm_frequency: number | null;
+  rfm_monetary: number | null;
+  rfm_score: string | null;
+  segment: Segment;                  // 'lead' | 'new' | 'active' | 'at_risk' | 'dormant' | 'vip'
+  tier: AudienceTier;                // 'vip' | 'frequent' | 'occasional'
+  calculated_at: string;
+  guest?: Guest;                     // hidratado en reads
+}
+```
+
+Tabla: `guest_profiles` (migraciones [`001`](../supabase/migrations/001_initial_schema.sql) + [`002`](../supabase/migrations/002_campaigns.sql) que agrega `tier`). **No tiene columnas JSONB de insights** — esos siguen en `cdp_guest_partners` (§2.5) y se joinean cuando hace falta.
+
+**Constructor principal**: [`lib/cdp.ts:cdpGuestPartnerToProfile`](../lib/cdp.ts) proyecta `cdp_guest_partners` → `GuestProfile` (rename casi directo, más cálculos derivados `avg_amount`, `avg_days_between_visits`, `avg_score`). Los campos `rfm_*`, `segment` y `tier` quedan como placeholder y los asigna [`lib/segmentation.ts:classifyGuests`](../lib/segmentation.ts) (TODO).
+
+### 2.5 Raw CDP tables (`cdp_*`) — espejo de los CSVs
+
+Las tres tablas de la migración [`003_cdp_raw.sql`](../supabase/migrations/003_cdp_raw.sql) preservan los CSVs sin pérdida. Son la fuente de verdad para cualquier dato que no esté materializado en el app layer — especialmente los insights JSON que son el único puente visit ↔ guest_partner.
+
+#### `cdp_visits`
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `visit_id` | text PK | Hash del CDP, ej. `69b03705dc7dc47bd1858838`. Es el string que aparece en los `visitId` de los insights — **por eso es el PK**. |
+| `tenant`, `partner_id`, `visit_type`, `party_size`, `party_size_seated`, `sector_name`, `channel`, `platform`, `state`, `visit_outcome` | | Core de la reserva |
+| `guest_comment`, `venue_comment`, `tags` (jsonb) | | Vacíos en La Cabrera |
+| `arrived_at`, `departed_at`, `visited_at`, `confirmed_at`, `accepted_at`, `no_show_at`, `rejected_at`, `cancelled_at` | timestamptz | Timeline |
+| `score`, `review_*` (×11) | | Ratings — todos vacíos en La Cabrera |
+| `discount_percentage`, `has_guarantee`, `guarantee_amount`, `cancelled_by`, `shift_id`, `source_state` | | Extras |
+
+Indexes: `visited_at`, `partner_id`, `state`, `visit_outcome`.
+
+**No hay FK a `cdp_guest_partners`.** El link sólo existe por los `visitId` embebidos en los insights JSON del guest_partner (ver siguiente tabla).
+
+#### `cdp_guest_partners`
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `guest_partner_id` | text PK | Hash del CDP, ej. `CC5AB85BC1790384FA650EF5306B3414` |
+| `tenant`, `partner_id`, `brand_id` | text | Tenant |
+| `guest_name`, `guest_email`, `guest_language` | text | Identidad |
+| `location_name`, `location_categories` (jsonb), `location_city` | | Venue |
+| `total_visits`, `total_walkins`, `total_bookings`, `total_pending`, `total_no_shows`, `total_cancellations`, `total_rejected` | int | Contadores |
+| `no_show_rate`, `cancellation_rate`, `rejection_rate`, `booking_conversion_rate`, `confirmation_rate` | numeric | Tasas |
+| `guarantee_insights` | jsonb | `{ lastAt, bookings: [{ date, amount, visitId }], totalAmount, totalBookings }` — **la única fuente de monetario y el primer lugar donde vive el puente visit→guest** |
+| `cancellation_insights` | jsonb | `{ lastAt, lastBy, cancellations: [{ by, date, reason, visitId }], cancelledByGuest, cancelledByVenue, totalCancellations }` — segundo puente |
+| `review_insights` | jsonb | `{ reviews: [{ visitId, ... }], totalRating, totalReviews, ... }` — vacío en la muestra pero estructuralmente existe |
+| `channel_insights` | jsonb | `{ channelMigrated, directBookingRate, lastBookingChannel, firstBookingChannel, preferredBookingChannel }` |
+| `waitlist_insights` | jsonb | Vacío en la muestra |
+| `first_visit_at`, `last_visit_at`, `days_since_last`, `next_visit_at`, `days_until_next`, `total_days_between_visits`, `visit_gap_count` | | Temporal |
+| `preferred_shift`, `preferred_day_of_week`, `preferred_sector`, `preferred_channel`, `preferred_visit_type`, `preferred_platform` | text | Preferencias |
+| `is_favorite`, `is_highlighted`, `is_banned`, `food_restrictions`, `special_relationship`, `partner_tags` (jsonb) | | Flags |
+| `total_score`, `scored_visit_count`, `last_score`, `last_scored_at`, `last_review_rating` | | Ratings agregados |
+| `total_party_size`, `party_size_count`, `total_seated_guests`, `seated_visit_count`, `total_guests_brought` | | Party size |
+| `avg_discount_percentage`, `total_discounted_visits`, `total_venue_notes`, `total_lead_time_minutes`, `last_lead_time_minutes`, `direct_booking_rate`, `direct_booking_count` | | Extras |
+| `first_booking_channel`, `last_booking_channel`, `calculated_at`, `source` | | Metadata |
+
+Indexes: `total_visits`, `days_since_last`, `last_visit_at`, `guest_email`.
+
+TS correspondiente: [`CdpGuestPartnerRow` en `lib/cdp.ts`](../lib/cdp.ts). Forma de los insights:
 
 ```ts
 interface GuaranteeInsights {
@@ -181,7 +295,13 @@ interface CancellationInsights {
   totalCancellations: number;
 }
 
-interface ReviewInsights { /* vacío en la muestra de La Cabrera */ }
+interface ReviewInsights {
+  reviews: Array<{ visitId?: string; /* ... */ }>;
+  totalRating: number;
+  totalReviews: number;
+  // food/service/ambience rating counts + totals
+}
+
 interface ChannelInsights {
   channelMigrated: boolean;
   directBookingRate: number;
@@ -191,16 +311,13 @@ interface ChannelInsights {
 }
 ```
 
-Los `visitId` dentro de estos arrays son los **mismos strings** que `visits.external_visit_id` — ese es el puente para resolver "las visitas de un guest_partner" sin tener FK directa.
+Los `visitId` dentro de `guarantee_insights.bookings[]`, `cancellation_insights.cancellations[]` y `review_insights.reviews[]` coinciden con `cdp_visits.visit_id`. Eso habilita el resolver de `GET /api/guest-partners/[id]/visits` (§3.2).
 
-Tipos derivados:
+#### `cdp_guest_unified`
 
-```ts
-type Segment = 'lead' | 'new' | 'active' | 'at_risk' | 'dormant' | 'vip';
-type AudienceTier = 'vip' | 'frequent' | 'occasional';
-```
+Cross-brand. PK `guest_id text`. Tiene versiones `_global` de los contadores (`total_visits_global`, `total_no_shows_global`, etc.), `favorite_partner_id`, `visited_cities` (jsonb), `cuisine_preferences` (jsonb), y los mismos insights JSON que `cdp_guest_partners` pero agregados cross-tenant. Indexes: `primary_email`, `last_seen_at`.
 
-Tabla: `guest_profiles` (con columnas JSONB `guarantee_insights`, `cancellation_insights`, `review_insights`, `channel_insights` a agregar al schema). Constructor principal: [`lib/cdp.ts:cdpGuestPartnerToProfile`](../lib/cdp.ts) + [`lib/segmentation.ts:classifyGuests`](../lib/segmentation.ts) (TODO).
+**Uso en el MVP**: sólo lectura para enriquecer señales de VIP (ej. `total_tenants > 1` = alto valor cross-brand). No se proyecta al app layer.
 
 ### 2.5 `SegmentSummary`
 
@@ -453,32 +570,55 @@ Ingesta del CSV legacy (12 columnas) desde el flow de upload de la UI.
 
 #### `POST /api/cdp/import` ➕ 🔴
 
-Ingesta de los CSVs nativos de Woki (formato La Cabrera). Reemplaza `/api/upload` para el path CDP completo.
+Ingesta de los CSVs nativos del CDP (formato La Cabrera). Flujo de dos pasos: **raw insert** (llena `cdp_*`) + **proyección** (materializa `guests` + `guest_profiles` + `visits` a partir del raw).
 
 - **Request**: `multipart/form-data`
-  - `guest_partner_file: File` — obligatorio. Mapea a `guests` + `guest_profiles`.
-  - `visit_file?: File` — opcional. Mapea a `visits`.
-  - `guest_unified_file?: File` — opcional. Enriquece profiles con señales cross-tenant.
+  - `guest_partner_file: File` — obligatorio. Destino raw: `cdp_guest_partners`.
+  - `visit_file?: File` — opcional. Destino raw: `cdp_visits`.
+  - `guest_unified_file?: File` — opcional. Destino raw: `cdp_guest_unified`.
 - **Response**:
   ```ts
-  { restaurant_id: string; guests: number; profiles: number; visits: number }
+  {
+    restaurant_id: string;
+    raw: {
+      cdp_guest_partners: number;
+      cdp_visits: number;
+      cdp_guest_unified: number;
+    };
+    projected: {
+      guests: number;
+      guest_profiles: number;
+      visits: number;
+    };
+  }
   ```
 - **Errores**: `400` archivos faltantes o headers inválidos · `500` error de DB.
 - **Notas de implementación**:
-  1. Parsear `guest_partner_file` con [`lib/cdp.ts:parseCdpGuestPartnerCsv`](../lib/cdp.ts).
-  2. Upsertar `restaurants` desde `DEFAULT_RESTAURANT`.
-  3. Insertar `guests` (una fila por `guest_partner_id` externo, unique por `restaurant_id`), guardando el hash en `guest_partner_id`. **No dedupe** por email — la identidad real es la relación guest × partner.
-  4. Llamar [`cdpGuestPartnerToProfile`](../lib/cdp.ts) por row → upsert en `guest_profiles` incluyendo los JSONB de insights tal cual vienen del CSV.
-  5. **Construir el reverse-index** `{ external_visit_id → guest_id }` recorriendo los insights de cada guest_partner:
+
+  **Paso 1 — Raw insert** (preserva el CSV 1:1):
+  1. Parsear con [`parseCdpGuestPartnerCsv`](../lib/cdp.ts) / [`parseCdpVisitCsv`](../lib/cdp.ts) / [`parseCdpGuestUnifiedCsv`](../lib/cdp.ts).
+  2. Upsert en `cdp_guest_partners`, `cdp_visits`, `cdp_guest_unified` por su PK text. Idempotente: re-ejecutar pisa el estado anterior.
+  3. Upsert `restaurants` desde `DEFAULT_RESTAURANT`.
+
+  **Paso 2 — Proyección al app layer**:
+  4. Por cada row en `cdp_guest_partners`:
+     - Insertar un `guests` row (`name = guest_name`, `email = guest_email`, `phone = null`, `restaurant_id = <resolved>`). El `guests.id` se genera como uuid nuevo.
+     - Llamar [`cdpGuestPartnerToProfile(row, restaurantId)`](../lib/cdp.ts) y upsertear el resultado en `guest_profiles` (con `guest_id` apuntando al uuid del paso anterior).
+  5. **Construir el reverse-index** `Map<cdp_visit_id, guest_uuid>` recorriendo los insights del raw:
      ```ts
-     for (const profile of profiles) {
-       for (const b of profile.guarantee_insights?.bookings ?? []) index.set(b.visitId, profile.guest_id);
-       for (const c of profile.cancellation_insights?.cancellations ?? []) index.set(c.visitId, profile.guest_id);
-       for (const r of profile.review_insights?.reviews ?? []) index.set(r.visitId, profile.guest_id);
+     const index = new Map<string, string>();
+     for (const gp of cdpGuestPartners) {
+       const g = guestIdByPartnerId.get(gp.guest_partner_id)!;
+       for (const b of gp.guarantee_insights?.bookings ?? []) index.set(b.visitId, g);
+       for (const c of gp.cancellation_insights?.cancellations ?? []) index.set(c.visitId, g);
+       for (const r of gp.review_insights?.reviews ?? []) {
+         if (typeof r.visitId === 'string') index.set(r.visitId, g);
+       }
      }
      ```
-  6. Si viene `visit_file`, parsear con `parseCdpVisitCsv`, mapear estados a `visits.outcome` (ver §1), setear `external_visit_id = row.visit_id`, `guest_id = index.get(row.visit_id) ?? null`, y `amount = row.has_guarantee ? row.guarantee_amount : null`. Insertar en batches.
-  7. Visits sin match en el index quedan con `guest_id = null` — son esperables y no rompen nada; siguen disponibles para analytics a nivel restaurant.
+  6. Proyectar `cdp_visits` → `visits`: por cada row mapear estados (`ARRIVED→completed`, `CANCELLED_BY_*→cancelled`, `NO_SHOW→no_show`, resto → `pending`), `amount = has_guarantee ? guarantee_amount : null`, `visit_date = visited_at`, `guest_id = index.get(cdp_visit.visit_id) ?? null`. Insertar en batches de 500.
+  7. Visits sin match en el index quedan con `guest_id = null` — esperable para cualquier visit cuyo `visitId` no aparezca en los insights. No rompe nada.
+  8. Los insights JSON **no se duplican** en el app layer: viven sólo en `cdp_guest_partners`. Cualquier endpoint que los necesite joinea por `guest_partner_id` o `guest_email`.
 
 #### `POST /api/analyze` 🔴
 
@@ -526,50 +666,61 @@ Lista de GuestPartners filtrable por segmento/tier.
 
 #### `GET /api/guest-partners/[id]` ➕ 🔴
 
-Ficha 360 de un GuestPartner (guest × restaurante).
+Ficha 360 del guest_partner (un row en `guest_profiles` + contacto).
 
-- **Path**: `id` = `guests.id` (uuid interno) o `guests.guest_partner_id` (hash externo del CSV). El handler acepta ambos y decide por heurística de formato.
+- **Path**: `id` puede ser:
+  - `guest_profiles.id` (uuid del app layer), **o**
+  - `cdp_guest_partners.guest_partner_id` (hash text del CDP — reconciliado server-side buscando el row en `cdp_guest_partners` y luego el `guest_profiles` con el mismo `guest_email`).
+  
+  El handler decide por heurística de formato (uuid vs hex hash).
 - **Response**:
   ```ts
   {
-    guest_partner: Guest;            // fila de guests (name, email, language, tags, etc.)
-    profile: GuestProfile | null;    // agregados + segmento + insights JSON
-    messages: Message[];             // últimos 20, ordenados desc
+    guest_partner: {
+      profile: GuestProfile;          // guest_profiles row
+      guest: Guest;                   // hidratado de guests por guest_id
+      raw?: CdpGuestPartnerRow;       // opcional: row crudo de cdp_guest_partners (incluye los *_insights jsonb)
+    };
+    messages: Message[];              // últimos 20 contra este guest_id
   }
   ```
-- **Errores**: `404` GuestPartner no existe.
+- **Query**:
+  - `include_raw?: boolean` (default `false`) — si true, joinea con `cdp_guest_partners` y devuelve la row completa en `guest_partner.raw`.
+- **Errores**: `404` guest_partner no existe.
 - **Notas**: no incluye visits. Para eso → endpoint siguiente.
 
 #### `GET /api/guest-partners/[id]/visits` ➕ 🔴
 
-Resuelve las visitas asociadas a un GuestPartner usando los `visitId` embebidos en los insights JSON del `guest_profile`. Este endpoint es la **única** forma correcta de obtener "las visitas de un guest" en este producto (el visit CSV no tiene FK a guest).
+Resuelve las visitas asociadas a un guest_partner leyendo los `visitId` embebidos en los insights JSON de `cdp_guest_partners` y joineando contra `cdp_visits` por `visit_id`. Este endpoint es la **única** forma correcta de obtener "las visitas de un guest" en este producto (el CDP no trae un link directo visit → guest_partner).
 
-- **Path**: `id` = `guests.id` o `guest_partner_id`.
+- **Path**: `id` = `guest_profiles.id` o `cdp_guest_partners.guest_partner_id`.
 - **Query**:
   - `source?: 'bookings' | 'cancellations' | 'reviews' | 'all'` (default `'all'`) — filtrar por qué insight originó el link.
   - `limit?: number` (default `200`)
 - **Response**:
   ```ts
   {
-    guest_partner_id: string;
-    visits: Array<Visit & { linked_via: 'bookings' | 'cancellations' | 'reviews' }>;
+    guest_partner_id: string;          // el hash del CDP
+    visits: Array<CdpVisitRow & { linked_via: 'bookings' | 'cancellations' | 'reviews' }>;
     total: number;
-    unresolved_ids: string[];   // visitIds que estaban en los insights pero no matchean ninguna fila en visits
+    unresolved_ids: string[];          // visitIds del insight que no matchean ninguna fila en cdp_visits
   }
   ```
-- **Errores**: `404` GuestPartner no existe.
+  El payload devuelve filas de `cdp_visits` directamente (39 columnas, full fidelity). Si el consumer quiere sólo los campos "de dominio", puede proyectarlos client-side con el mapeo de §1.
+- **Errores**: `404` guest_partner no existe.
 - **Notas de implementación**:
-  1. Cargar `guest_profiles` del GuestPartner (incluye las columnas JSONB `guarantee_insights`, `cancellation_insights`, `review_insights`).
-  2. Extraer los `visitId` de:
+  1. Resolver el `guest_partner_id` (hash text) desde el path. Si llegó un uuid, hacer `guest_profiles → guests.email → cdp_guest_partners.guest_email` (o mantener un índice a parte si la búsqueda es lenta).
+  2. `select guarantee_insights, cancellation_insights, review_insights from cdp_guest_partners where guest_partner_id = ?`.
+  3. Extraer los `visitId` de:
      - `guarantee_insights.bookings[].visitId`
      - `cancellation_insights.cancellations[].visitId`
-     - `review_insights.reviews[].visitId`
+     - `review_insights.reviews[].visitId` (puede no tenerlo)
      
-     Marcar cada uno con `linked_via` según de qué array salió.
-  3. Filtrar por `source` si viene en query.
-  4. `supabase.from('visits').select('*').in('external_visit_id', [...])`.
-  5. Ordenar por `visit_date` desc, aplicar `limit`.
-  6. `unresolved_ids` = los `visitId` que no encontraron fila (esperable si el `visit_file` se importó parcial o si la visit es más vieja que el rango del CSV).
+     Marcar cada uno con `linked_via` según de qué array salió. Dedupe final: si un `visitId` aparece en varios arrays, priorizar `bookings > cancellations > reviews`.
+  4. Filtrar por `source` si viene en query.
+  5. `select * from cdp_visits where visit_id in (...)` con el batch de IDs resueltos.
+  6. Ordenar por `visited_at` desc, aplicar `limit`.
+  7. `unresolved_ids` = los que no encontraron fila (puede pasar si el import del `visit_file` fue parcial o si la visit es previa al rango del CSV de visits).
 
 ### 3.3 Templates
 
@@ -842,12 +993,14 @@ Dónde cae cada endpoint en la pipeline del producto:
 
 ## 5. Limitaciones conocidas
 
+- **Gap cdp_visit ↔ cdp_guest_partner** → el CDP no trae una FK directa. El único puente son los `visitId` embebidos en `guarantee_insights`, `cancellation_insights` y `review_insights` de `cdp_guest_partners`. Cualquier visit que no esté en ninguno de esos arrays no se puede atribuir a un guest_partner. El `GET /api/guest-partners/[id]/visits` y la proyección de `/api/cdp/import` son los dos lugares donde esto se maneja explícitamente.
 - **Sin teléfonos reales en la data** → no hay WhatsApp sendable. El canal por default para demo es email, o `whatsapp_then_email` simulado.
 - **Sin ticket real** → `total_spent` y `avg_amount` son approximaciones desde `guarantee_insights.totalAmount`.
-- **Sin reviews** → los prompts toleran `score: null`. No hay señal de sentiment por guest.
+- **Sin reviews ni scores** → todos los campos `score`, `review_*` del CDP vienen vacíos en la muestra. Los prompts toleran `score: null`. No hay señal de sentiment por guest.
 - **Single-tenant durante el hackathon** → `restaurant_id` se resuelve server-side desde `DEFAULT_RESTAURANT`. Multi-tenant real queda fuera.
 - **Sin delivery providers** → `sent_at`, `delivered_at`, `read_at` se mockean. No hay webhooks inbound.
 - **Sin autenticación** → cualquiera con acceso al dev server puede llamar cualquier endpoint.
+- **`cdp_guest_unified` no se proyecta** → vive sólo en el raw layer. Si hace falta enriquecer (ej. detectar VIP cross-tenant), se joinea on-demand por `guest_email`.
 
 ## 6. Orden de implementación
 
