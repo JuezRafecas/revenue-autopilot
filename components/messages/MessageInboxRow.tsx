@@ -42,6 +42,8 @@ interface Props {
   status: MessageStatus;
   createdAt: string;
   revenue?: number;
+  onApprove?: (id: string) => void;
+  onSkip?: (id: string) => void;
 }
 
 export function MessageInboxRow({
@@ -53,6 +55,8 @@ export function MessageInboxRow({
   status,
   createdAt,
   revenue,
+  onApprove,
+  onSkip,
 }: Props) {
   const when = new Date(createdAt).toLocaleString('en-US', {
     day: '2-digit',
@@ -142,6 +146,7 @@ export function MessageInboxRow({
               type="button"
               aria-label={`Skip message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600] transition-colors"
+              onClick={() => onSkip?.(id)}
               style={{
                 letterSpacing: '0.14em',
                 border: '1px solid var(--hairline-strong)',
@@ -156,6 +161,7 @@ export function MessageInboxRow({
               type="button"
               aria-label={`Approve message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600] transition-colors hover:opacity-90"
+              onClick={() => onApprove?.(id)}
               style={{
                 letterSpacing: '0.14em',
                 border: '1px solid var(--fg)',
@@ -190,6 +196,7 @@ export function MessageInboxRow({
               type="button"
               aria-label={`Skip message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600]"
+              onClick={() => onSkip?.(id)}
               style={{
                 letterSpacing: '0.14em',
                 border: '1px solid var(--hairline-strong)',
@@ -203,6 +210,7 @@ export function MessageInboxRow({
               type="button"
               aria-label={`Approve message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600]"
+              onClick={() => onApprove?.(id)}
               style={{
                 letterSpacing: '0.14em',
                 border: '1px solid var(--fg)',
