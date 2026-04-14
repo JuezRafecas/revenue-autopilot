@@ -81,10 +81,13 @@ describe('cdpGuestPartnerToProfile', () => {
   const baseRow: CdpGuestPartnerRow = {
     guest_partner_id: 'GP123',
     tenant: 'partner',
+    guest_id: 'guest_51854',
     partner_id: 'partner-1',
     brand_id: null,
     guest_name: 'Guest 51854',
     guest_email: 'guest51854@demo.com',
+    guest_phone: null,
+    guest_phone_iso_code: null,
     guest_language: null,
     location_name: 'La Cabrera Palermo',
     location_categories: ['grill', 'steakhouse'],

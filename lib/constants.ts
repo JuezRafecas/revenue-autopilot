@@ -81,8 +81,8 @@ export const SEGMENT_HEX: Record<Segment, string> = {
 };
 
 export const DEFAULT_RESTAURANT = {
-  name: 'Fabric Sushi',
-  slug: 'fabric-sushi',
+  name: 'La Cabrera',
+  slug: 'la-cabrera',
   avg_ticket: 45000,
   currency: 'ARS',
 };

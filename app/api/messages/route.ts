@@ -1,18 +1,41 @@
 import { NextResponse } from 'next/server';
-import { MOCK_MESSAGES } from '@/lib/mock';
+import { getServiceClient } from '@/lib/supabase';
+import { DEFAULT_RESTAURANT } from '@/lib/constants';
 import type { MessageStatus } from '@/lib/types';
 
-/**
- * GET /api/messages?status=pending_approval&campaign_id=xyz
- * Returns the message inbox with optional filters.
- * TODO (hackathon): query DB with joins to guests + campaigns.
- */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const status = url.searchParams.get('status') as MessageStatus | null;
-  let messages = MOCK_MESSAGES;
-  if (status) {
-    messages = messages.filter((m) => m.status === status);
+  const campaignId = url.searchParams.get('campaign_id');
+  const guestId = url.searchParams.get('guest_id');
+  const limit = Math.min(Number(url.searchParams.get('limit') ?? '100'), 500);
+
+  try {
+    const db = getServiceClient();
+    const { data: restaurant } = await db
+      .from('restaurants')
+      .select('id')
+      .eq('slug', DEFAULT_RESTAURANT.slug)
+      .maybeSingle();
+    if (!restaurant) {
+      return NextResponse.json({ error: 'restaurant not found' }, { status: 500 });
+    }
+
+    let query = db
+      .from('messages')
+      .select('*, guest:guests(*), campaign:campaigns(*)')
+      .eq('restaurant_id', restaurant.id)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (status) query = query.eq('status', status);
+    if (campaignId) query = query.eq('campaign_id', campaignId);
+    if (guestId) query = query.eq('guest_id', guestId);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return NextResponse.json({ messages: data ?? [] });
+  } catch (err) {
+    const m = err instanceof Error ? err.message : 'unknown error';
+    return NextResponse.json({ error: m }, { status: 500 });
   }
-  return NextResponse.json({ messages });
 }

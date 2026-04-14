@@ -1,41 +1,113 @@
 import { NextResponse } from 'next/server';
-import { MOCK_CAMPAIGNS } from '@/lib/mock';
+import { getServiceClient } from '@/lib/supabase';
+import { DEFAULT_RESTAURANT } from '@/lib/constants';
 import { campaignFromTemplate } from '@/lib/campaigns';
-import type { TemplateKey } from '@/lib/types';
+import { campaignFromRow, campaignInsertPayload, type CampaignRow } from '@/lib/campaigns-db';
+import type {
+  AudienceFilter,
+  CampaignStatus,
+  CampaignTrigger,
+  TemplateKey,
+} from '@/lib/types';
 
-/**
- * GET /api/campaigns
- * List campaigns. TODO (hackathon): query from DB, filter by status.
- */
-export async function GET() {
-  return NextResponse.json({ campaigns: MOCK_CAMPAIGNS });
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const status = url.searchParams.get('status') as CampaignStatus | null;
+  const templateKey = url.searchParams.get('template_key') as TemplateKey | null;
+
+  try {
+    const db = getServiceClient();
+    const { data: restaurant } = await db
+      .from('restaurants')
+      .select('id')
+      .eq('slug', DEFAULT_RESTAURANT.slug)
+      .maybeSingle();
+    if (!restaurant) {
+      return NextResponse.json({ error: 'restaurant not found' }, { status: 500 });
+    }
+
+    let query = db
+      .from('campaigns')
+      .select('*')
+      .eq('restaurant_id', restaurant.id)
+      .order('updated_at', { ascending: false });
+    if (status) query = query.eq('status', status);
+    if (templateKey) query = query.eq('template_key', templateKey);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    const campaigns = (data as CampaignRow[] | null)?.map(campaignFromRow) ?? [];
+    return NextResponse.json({ campaigns });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
-/**
- * POST /api/campaigns
- * Create a new campaign from a template.
- * Body: { template_key: TemplateKey, name?: string, restaurant_id: string }
- */
+interface CreatePayload {
+  template_key: TemplateKey;
+  name?: string;
+  audience_overrides?: Partial<AudienceFilter>;
+  trigger_overrides?: Partial<CampaignTrigger>;
+  restaurant_id?: string;
+}
+
 export async function POST(req: Request) {
+  let body: CreatePayload;
   try {
-    const body = (await req.json()) as {
-      template_key: TemplateKey;
-      name?: string;
-      restaurant_id: string;
-    };
-    if (!body.template_key || !body.restaurant_id) {
-      return NextResponse.json(
-        { error: 'template_key and restaurant_id are required' },
-        { status: 400 }
-      );
+    body = (await req.json()) as CreatePayload;
+  } catch {
+    return NextResponse.json({ error: 'invalid JSON body' }, { status: 400 });
+  }
+  if (!body.template_key) {
+    return NextResponse.json({ error: 'template_key is required' }, { status: 400 });
+  }
+
+  try {
+    const db = getServiceClient();
+    const { data: restaurant } = body.restaurant_id
+      ? await db
+          .from('restaurants')
+          .select('id')
+          .eq('id', body.restaurant_id)
+          .maybeSingle()
+      : await db
+          .from('restaurants')
+          .select('id')
+          .eq('slug', DEFAULT_RESTAURANT.slug)
+          .maybeSingle();
+    if (!restaurant) {
+      return NextResponse.json({ error: 'restaurant not found' }, { status: 500 });
     }
-    const draft = campaignFromTemplate(body.template_key, body.restaurant_id, {
+
+    const draft = campaignFromTemplate(body.template_key, restaurant.id, {
       name: body.name,
     });
-    // TODO (hackathon): persist to supabase.campaigns table
-    return NextResponse.json({ campaign: { ...draft, id: 'preview', created_at: new Date().toISOString() } });
+    if (body.audience_overrides) {
+      draft.audience_filter = { ...draft.audience_filter, ...body.audience_overrides };
+    }
+    if (body.trigger_overrides) {
+      draft.trigger = { ...draft.trigger, ...body.trigger_overrides } as CampaignTrigger;
+    }
+
+    const payload = campaignInsertPayload(draft);
+    const { data, error } = await db
+      .from('campaigns')
+      .insert(payload)
+      .select('*')
+      .single();
+    if (error) {
+      return NextResponse.json(
+        { error: error.message, details: error.details, hint: error.hint },
+        { status: 500 },
+      );
+    }
+    if (!data) {
+      return NextResponse.json({ error: 'insert returned no row' }, { status: 500 });
+    }
+    return NextResponse.json({ campaign: campaignFromRow(data as CampaignRow) }, { status: 201 });
   } catch (err) {
-    const m = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: m }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

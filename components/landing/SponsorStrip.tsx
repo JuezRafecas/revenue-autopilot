@@ -49,7 +49,7 @@ export function SponsorStrip() {
 function AnthropicWordmark() {
   return (
     <div
-      className="flex items-baseline gap-[2px] text-[#151411]"
+      className="text-[#151411]"
       style={{
         fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
         fontWeight: 600,
@@ -57,19 +57,7 @@ function AnthropicWordmark() {
         letterSpacing: '-0.02em',
       }}
     >
-      <span>Anthrop</span>
-      <span
-        style={{
-          display: 'inline-block',
-          width: '9px',
-          height: '9px',
-          borderRadius: '999px',
-          border: '1.8px solid #151411',
-          transform: 'translateY(-1px)',
-        }}
-        aria-hidden
-      />
-      <span>c</span>
+      Anthropic
     </div>
   );
 }
