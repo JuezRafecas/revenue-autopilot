@@ -7,21 +7,12 @@ import { Logo } from './Logo';
 import { cn } from '@/lib/cn';
 import { MOCK_RESTAURANT } from '@/lib/mock';
 
-type NavItem = {
-  href: string;
-  label: string;
-  live?: boolean;
-  soon?: boolean;
-  badgeKey?: 'pending';
-};
-
-const NAV: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard' },
+const NAV = [
   { href: '/hub', label: 'Nomi · Hub', live: true },
   { href: '/campaigns', label: 'Campaigns' },
   { href: '/templates', label: 'Templates', soon: true },
   { href: '/audience', label: 'Audience' },
-  { href: '/revenue', label: 'Revenue' },
+  { href: '/messages', label: 'Messages', badgeKey: 'pending' as const },
   { href: '/integrations', label: 'Integrations' },
   { href: '/settings', label: 'Settings' },
 ];
@@ -122,33 +113,6 @@ export function Sidebar({ mobileOpen = false, onMobileClose, pendingCount = 0 }:
         </ul>
       </nav>
 
-      <div
-        className="px-7 py-6"
-        style={{ borderTop: '1px solid var(--hairline)' }}
-      >
-        <div
-          className="text-[10px] uppercase mb-2 font-[600]"
-          style={{
-            letterSpacing: '0.18em',
-            color: 'var(--k-green, #0e5e48)',
-            fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
-          }}
-        >
-          Restaurant
-        </div>
-        <div
-          className="k-italic-serif text-[18px] leading-tight"
-          style={{ color: 'var(--fg)' }}
-        >
-          {MOCK_RESTAURANT.name}
-        </div>
-        <div
-          className="font-mono text-[10px] mt-1"
-          style={{ color: 'var(--fg-subtle)', letterSpacing: '0.08em' }}
-        >
-          {MOCK_RESTAURANT.slug}
-        </div>
-      </div>
     </>
   );
 
