@@ -114,6 +114,8 @@ Cambios puramente visuales (Tailwind classes, copy, spacing, color) que no se pu
 
 **Tests viven en** `lib/__tests__/*.test.ts` y `app/api/__tests__/*.test.ts`. Un test nuevo por cada cambio lógico.
 
+**Spec de la API.** Fuente de verdad: [`docs/api.md`](./docs/api.md). Cualquier cambio en `app/api/**` o en `lib/types.ts` se refleja en ese documento en el mismo commit. Antes de agregar un endpoint nuevo, revisá si ya está reservado ahí.
+
 **Design system.** Editorial Dark — warm near-black, Fraunces display, Instrument Sans body, JetBrains Mono tabular numerals, hairlines no borders, un solo accent (oxidized copper) para los segmentos que sangran plata. **Prohibido**: glassmorphism, gradientes violetas, aesthetic genérico de SaaS.
 
 **Automatización de browser / web.** Para cualquier tarea que involucre interactuar con una web (abrir sitios, llenar forms, click, scrape, screenshots, testear el dev server, dogfood, QA visual), la herramienta por defecto es **`agent-browser`**. No arrancar con `WebFetch`, `curl`, ni tools genéricas de Chrome DevTools salvo que `agent-browser` no pueda hacerlo. Triggers típicos: "abrir la landing", "testear el upload flow", "sacar screenshot de X", "ver cómo se ve en mobile", "verificar el golden path en el browser".

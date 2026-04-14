@@ -50,7 +50,7 @@ Every page renders with curated placeholder data even before you seed — the de
 - `/api/segments` and `/api/guests` — currently return mocks, wire them to real data
 - Dashboard and segment pages — currently read from `lib/mock.ts`, wire them to the APIs
 
-See [`HACKATHON_PLAN.md`](./HACKATHON_PLAN.md) for the hour-by-hour execution plan.
+See [`HACKATHON_PLAN.md`](./HACKATHON_PLAN.md) for the hour-by-hour execution plan and [`docs/api.md`](./docs/api.md) for the full API spec (entities, routes, data shapes, implementation status).
 
 ## Scripts
 
