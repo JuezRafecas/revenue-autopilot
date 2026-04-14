@@ -1,4 +1,4 @@
-# Revenue Journal
+# Revenue Autopilot
 
 Diagnóstico autónomo y recuperación de revenue para restaurantes. Boilerplate para el Kaszek Dev Hackathon 2026.
 
@@ -35,7 +35,7 @@ Every page renders with curated placeholder data even before you seed — the de
 
 ## What's already built
 
-- Full UI (landing, dashboard, segments, guest profile, actions, revenue, upload) in the **Editorial Dark / Revenue Journal** design system
+- Full UI (landing, dashboard, segments, guest profile, actions, revenue, upload) in the **Editorial Dark / Revenue Autopilot** design system
 - Typography: Fraunces display · Instrument Sans body · JetBrains Mono numerals (all via `next/font/google`)
 - All primitives, dashboard components, action panels, guest views
 - API routes: `/api/upload` (real CSV → DB glue), `/api/generate-message` (real Claude call), others return plausible mock data

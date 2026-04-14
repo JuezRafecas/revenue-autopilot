@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Revenue Journal — Fabric Sushi',
+  title: 'Revenue Autopilot — Fabric Sushi',
   description: 'Diagnóstico y recuperación de revenue para restaurantes.',
 };
 
