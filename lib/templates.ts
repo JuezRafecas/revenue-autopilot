@@ -12,10 +12,10 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
   post_visit_smart: {
     key: 'post_visit_smart',
     type: 'automation',
-    name: 'Post-visita inteligente',
+    name: 'Smart post-visit',
     description:
-      'Después de cada visita, agradecé, pedí feedback y si fue positiva, invitá a dejar una reseña en Google.',
-    headline: 'Cada visita, una oportunidad de review.',
+      'After every visit, thank the guest, ask for feedback, and if positive, invite them to leave a Google review.',
+    headline: 'Every visit, a review opportunity.',
     accent: 'active',
     default_audience: {
       segments: ['active', 'vip', 'new'],
@@ -48,9 +48,9 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
         kind: 'branch',
         condition: 'message_response',
         branches: [
-          { label: 'Positiva', matches: 'positive', next: 'request_review' },
-          { label: 'Negativa', matches: 'negative', next: 'escalate' },
-          { label: 'Sin respuesta', matches: 'no_response', next: 'gentle_reminder' },
+          { label: 'Positive', matches: 'positive', next: 'request_review' },
+          { label: 'Negative', matches: 'negative', next: 'escalate' },
+          { label: 'No response', matches: 'no_response', next: 'gentle_reminder' },
         ],
       },
       {
@@ -78,19 +78,19 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
       { id: 'end_reminder', kind: 'end', outcome: 'completed' },
     ],
     kpi_labels: [
-      { label: 'Reseñas generadas', key: 'reviews_generated' },
-      { label: 'Tasa de retorno', key: 'return_rate' },
-      { label: 'Ingreso atribuido', key: 'revenue_attributed' },
+      { label: 'Reviews generated', key: 'reviews_generated' },
+      { label: 'Return rate', key: 'return_rate' },
+      { label: 'Attributed revenue', key: 'revenue_attributed' },
     ],
   },
 
   first_to_second_visit: {
     key: 'first_to_second_visit',
     type: 'automation',
-    name: 'Primera → Segunda visita',
+    name: 'First → Second visit',
     description:
-      'Cuando un cliente visita por primera vez, enviá un mensaje personalizado invitándolo a volver.',
-    headline: 'La segunda visita es la que importa.',
+      'When a guest visits for the first time, send a personalized message inviting them back.',
+    headline: 'The second visit is the one that matters.',
     accent: 'new',
     default_audience: {
       segments: ['new'],
@@ -115,18 +115,18 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
       { id: 'end', kind: 'end', outcome: 'completed' },
     ],
     kpi_labels: [
-      { label: 'Tasa de segunda visita', key: 'second_visit_rate' },
-      { label: 'Días a segunda visita', key: 'days_to_second_visit' },
+      { label: 'Second visit rate', key: 'second_visit_rate' },
+      { label: 'Days to second visit', key: 'days_to_second_visit' },
     ],
   },
 
   reactivate_inactive: {
     key: 'reactivate_inactive',
     type: 'automation',
-    name: 'Recuperar clientes inactivos',
+    name: 'Reactivate inactive guests',
     description:
-      'Contactá a clientes que hace tiempo no visitan con un mensaje de "te extrañamos" y una invitación personalizada.',
-    headline: 'La plata que se está yendo por la puerta.',
+      'Reach out to guests who haven\'t visited in a while with a "we miss you" message and a personalized invitation.',
+    headline: 'The money walking out the door.',
     accent: 'dormant',
     default_audience: {
       segments: ['dormant', 'at_risk'],
@@ -154,9 +154,9 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
         kind: 'branch',
         condition: 'message_response',
         branches: [
-          { label: 'Positiva', matches: 'positive', next: 'end_positive' },
-          { label: 'Sin respuesta', matches: 'no_response', next: 'final_attempt' },
-          { label: 'Negativa', matches: 'negative', next: 'end_negative' },
+          { label: 'Positive', matches: 'positive', next: 'end_positive' },
+          { label: 'No response', matches: 'no_response', next: 'final_attempt' },
+          { label: 'Negative', matches: 'negative', next: 'end_negative' },
         ],
       },
       {
@@ -172,18 +172,18 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
       { id: 'end_no_response', kind: 'end', outcome: 'completed' },
     ],
     kpi_labels: [
-      { label: 'Tasa de reactivación', key: 'reactivation_rate' },
-      { label: 'Ingreso recuperado', key: 'revenue_recovered' },
+      { label: 'Reactivation rate', key: 'reactivation_rate' },
+      { label: 'Revenue recovered', key: 'revenue_recovered' },
     ],
   },
 
   promote_event: {
     key: 'promote_event',
     type: 'one_shot',
-    name: 'Promover evento',
+    name: 'Promote event',
     description:
-      'Invitá a tus clientes a una experiencia especial — cena con chef invitado, menú degustación, fechas especiales.',
-    headline: 'Noches que se cuentan después.',
+      'Invite your guests to a special experience — guest chef dinner, tasting menu, special dates.',
+    headline: 'Nights worth talking about.',
     accent: 'vip',
     default_audience: {
       tiers: ['vip', 'frequent'],
@@ -209,8 +209,8 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
         kind: 'branch',
         condition: 'custom',
         branches: [
-          { label: 'Cupos llenos', matches: 'event_full', next: 'end_full' },
-          { label: 'Sigue abierto', matches: 'event_open', next: 'send_frequent_invite' },
+          { label: 'Full', matches: 'event_full', next: 'end_full' },
+          { label: 'Still open', matches: 'event_open', next: 'send_frequent_invite' },
         ],
       },
       {
@@ -225,18 +225,18 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
       { id: 'end_expanded', kind: 'end', outcome: 'completed' },
     ],
     kpi_labels: [
-      { label: 'Reservas generadas', key: 'reservations_generated' },
-      { label: 'Ocupación del evento', key: 'event_occupancy' },
+      { label: 'Reservations generated', key: 'reservations_generated' },
+      { label: 'Event occupancy', key: 'event_occupancy' },
     ],
   },
 
   fill_empty_tables: {
     key: 'fill_empty_tables',
     type: 'automation',
-    name: 'Llenar mesas vacías',
+    name: 'Fill empty tables',
     description:
-      'Detecta automáticamente días con baja ocupación y contacta a los clientes con mayor afinidad a ese día y horario.',
-    headline: 'Mesas vacías ya no deberían existir.',
+      'Automatically detect days with low occupancy and contact the guests with the highest affinity for that day and time.',
+    headline: 'Empty tables shouldn\'t exist anymore.',
     accent: 'at_risk',
     default_audience: {
       segments: ['active', 'at_risk'],
@@ -260,8 +260,8 @@ export const TEMPLATES: Record<TemplateKey, CampaignTemplate> = {
       { id: 'end', kind: 'end', outcome: 'completed' },
     ],
     kpi_labels: [
-      { label: 'Cubiertos incrementales', key: 'incremental_covers' },
-      { label: 'Ingreso incremental del día', key: 'incremental_daily_revenue' },
+      { label: 'Incremental covers', key: 'incremental_covers' },
+      { label: 'Incremental daily revenue', key: 'incremental_daily_revenue' },
     ],
   },
 };

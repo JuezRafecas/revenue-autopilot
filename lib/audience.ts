@@ -66,16 +66,16 @@ export function computeTier(
 
 export const TIER_LABEL: Record<AudienceTier, string> = {
   vip: 'VIP',
-  frequent: 'Frecuentes',
-  occasional: 'Ocasionales',
+  frequent: 'Frequent',
+  occasional: 'Occasional',
 };
 
 export const SEGMENT_LABEL: Record<Segment, string> = {
   lead: 'Leads',
-  new: 'Nuevos',
-  active: 'Activos',
-  at_risk: 'En riesgo',
-  dormant: 'Dormidos',
+  new: 'New',
+  active: 'Active',
+  at_risk: 'At risk',
+  dormant: 'Dormant',
   vip: 'VIP',
 };
 
@@ -91,20 +91,20 @@ export function describeAudience(filter: AudienceFilter): string {
     parts.push(filter.tiers.map((t) => TIER_LABEL[t]).join(' + '));
   }
   if (filter.not_visited_in_last_days) {
-    parts.push(`sin visita en ${filter.not_visited_in_last_days}d`);
+    parts.push(`no visit in ${filter.not_visited_in_last_days}d`);
   }
   if (filter.visited_in_last_days) {
-    parts.push(`con visita en ${filter.visited_in_last_days}d`);
+    parts.push(`visit in last ${filter.visited_in_last_days}d`);
   }
   if (filter.min_total_visits) {
-    parts.push(`≥ ${filter.min_total_visits} visitas`);
+    parts.push(`≥ ${filter.min_total_visits} visits`);
   }
   if (filter.preferred_day_of_week) {
-    parts.push(`prefieren ${filter.preferred_day_of_week}`);
+    parts.push(`prefer ${filter.preferred_day_of_week}`);
   }
   if (filter.preferred_shift) {
-    parts.push(filter.preferred_shift === 'dinner' ? 'cena' : 'almuerzo');
+    parts.push(filter.preferred_shift === 'dinner' ? 'dinner' : 'lunch');
   }
-  if (parts.length === 0) return 'toda la base';
+  if (parts.length === 0) return 'entire base';
   return parts.join(' · ');
 }

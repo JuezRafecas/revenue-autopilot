@@ -56,12 +56,12 @@ export function detectOpportunities(
       severity: severityFromShare(dormantShare),
       target_segment: 'dormant',
       suggested_template_key: 'reactivate_inactive',
-      headline: `${audienceSize} comensales están dormidos.`,
-      reasoning: `${sharePct}% de tu base está en segmento dormido. Asumiendo ticket promedio de $${formatMoney(
+      headline: `${audienceSize} guests have gone dormant.`,
+      reasoning: `${sharePct}% of your base is in the dormant segment. Assuming an average ticket of $${formatMoney(
         avgTicket
-      )} y una tasa de reactivación conservadora de ${Math.round(
+      )} and a conservative reactivation rate of ${Math.round(
         REACTIVATION_RATE * 100
-      )}%, hay ~$${formatMoney(revenuePotential)} recuperables con una campaña de reactivación.`,
+      )}%, there's ~$${formatMoney(revenuePotential)} recoverable with a reactivation campaign.`,
       audience_size: audienceSize,
       revenue_potential: revenuePotential,
       confidence: clamp01(0.5 + dormantShare),
@@ -80,10 +80,10 @@ export function detectOpportunities(
       severity: audienceSize > 200 ? 'high' : 'medium',
       target_segment: 'at_risk',
       suggested_template_key: 'reactivate_inactive',
-      headline: `${audienceSize} clientes están a punto de dormirse.`,
-      reasoning: `Tenés ${audienceSize} clientes en segmento "en riesgo" — visitaron hace entre 30 y 60 días. Una nudge warm (${Math.round(
+      headline: `${audienceSize} guests are about to go dormant.`,
+      reasoning: `You have ${audienceSize} guests in the "at risk" segment — they visited between 30 and 60 days ago. A warm nudge (${Math.round(
         WARM_REACTIVATION_RATE * 100
-      )}% de reactivación asumida) recupera ~$${formatMoney(revenuePotential)}.`,
+      )}% assumed reactivation rate) recovers ~$${formatMoney(revenuePotential)}.`,
       audience_size: audienceSize,
       revenue_potential: revenuePotential,
       confidence: clamp01(0.4 + Math.min(audienceSize / 500, 0.5)),
@@ -102,10 +102,10 @@ export function detectOpportunities(
       severity: severityFromShare(firstVisitShare),
       target_segment: 'new',
       suggested_template_key: 'first_to_second_visit',
-      headline: `${audienceSize} clientes primerizos sin segunda visita.`,
-      reasoning: `${sharePct}% de tu base visitó una sola vez. La segunda visita define la retención — una invitación personalizada en las primeras 72h levanta ~${Math.round(
+      headline: `${audienceSize} first-time guests with no second visit.`,
+      reasoning: `${sharePct}% of your base visited only once. The second visit defines retention — a personalized invite in the first 72h lifts ~${Math.round(
         SECOND_VISIT_LIFT * 100
-      )}%. Potencial: ~$${formatMoney(revenuePotential)}.`,
+      )}%. Potential: ~$${formatMoney(revenuePotential)}.`,
       audience_size: audienceSize,
       revenue_potential: revenuePotential,
       confidence: clamp01(0.45 + firstVisitShare),

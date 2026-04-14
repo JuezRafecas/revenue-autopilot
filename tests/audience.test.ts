@@ -128,8 +128,8 @@ describe('computeTier', () => {
 });
 
 describe('describeAudience', () => {
-  it('returns "toda la base" for empty filter', () => {
-    expect(describeAudience({})).toBe('toda la base');
+  it('returns "entire base" for empty filter', () => {
+    expect(describeAudience({})).toBe('entire base');
   });
   it('joins segments and constraints', () => {
     const str = describeAudience({
@@ -137,8 +137,8 @@ describe('describeAudience', () => {
       not_visited_in_last_days: 60,
       min_total_visits: 2,
     });
-    expect(str).toContain('Dormidos');
+    expect(str).toContain('Dormant');
     expect(str).toContain('60d');
-    expect(str).toContain('2 visitas');
+    expect(str).toContain('2 visits');
   });
 });

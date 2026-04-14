@@ -1,4 +1,4 @@
--- Revenue Autopilot — campaigns / templates / messages / events / attributions
+-- Nomi - Guest Autopilot — campaigns / templates / messages / events / attributions
 -- Run after 001_initial_schema.sql.
 
 create extension if not exists "pgcrypto";

@@ -1,4 +1,4 @@
--- Revenue Autopilot — raw CDP export mirrors
+-- Nomi - Guest Autopilot — raw CDP export mirrors
 -- Each table preserves a CSV from Woki 1:1 so downstream logic can be built
 -- on full-fidelity data. No FKs to app tables: the CDP export does not carry
 -- a cdp_visit ↔ cdp_guest_partner link (known gap).

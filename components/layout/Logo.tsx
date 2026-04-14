@@ -1,21 +1,16 @@
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={`flex items-baseline gap-[3px] ${className ?? ''}`}>
+    <div className={`flex items-baseline gap-[4px] ${className ?? ''}`}>
       <span
-        className="k-italic-serif text-[20px] leading-none"
-        style={{ color: 'var(--fg)', letterSpacing: '-0.03em' }}
-      >
-        Revenue
-      </span>
-      <span
-        className="text-[20px] leading-none font-[800]"
+        className="text-[22px] leading-none font-[800]"
         style={{
-          fontFamily: 'var(--font-kaszek-display), "Archivo Black", system-ui, sans-serif',
-          color: 'var(--accent)',
-          letterSpacing: '-0.04em',
+          fontFamily:
+            'var(--font-kaszek-display), "Archivo Black", system-ui, sans-serif',
+          color: 'var(--fg)',
+          letterSpacing: '-0.045em',
         }}
       >
-        Autopilot
+        NOMI
       </span>
       <span
         aria-hidden
