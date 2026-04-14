@@ -7,31 +7,34 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "generate-csv": "tsx scripts/generate-csv.ts",
     "seed": "tsx scripts/seed.ts",
     "reset": "tsx scripts/reset.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.11.17",
     "next": "^15.0.3",
+    "papaparse": "^5.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@supabase/supabase-js": "^2.45.4",
-    "@anthropic-ai/sdk": "^0.32.1",
-    "papaparse": "^5.4.1",
-    "recharts": "^2.12.7",
-    "framer-motion": "^11.11.17",
-    "clsx": "^2.1.1"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
     "@types/node": "^22.9.0",
     "@types/papaparse": "^5.3.15",
-    "tailwindcss": "^3.4.14",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.5",
     "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.14",
     "tsx": "^4.19.2",
-    "dotenv": "^16.4.5"
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.4"
   }
 }

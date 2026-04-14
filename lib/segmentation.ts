@@ -11,7 +11,8 @@ import type { GuestProfile, Segment, Visit } from './types';
  * - AT_RISK: última visita entre 1x y 2x su frecuencia promedio
  * - DORMANT: última visita hace más de 2x su frecuencia promedio O más de 60 días
  */
-export function classifyGuests(_visitsByGuest: Map<string, Visit[]>): GuestProfile[] {
+export function classifyGuests(visitsByGuest: Map<string, Visit[]>): GuestProfile[] {
+  if (visitsByGuest.size === 0) return [];
   throw new Error('classifyGuests: Not implemented — build during hackathon');
 }
 
