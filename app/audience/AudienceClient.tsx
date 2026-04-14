@@ -110,10 +110,30 @@ export function AudienceClient({
           >
             <span className="italic">{totalGuests}</span> guests in the base.
           </h1>
-          <div className="md:text-right shrink-0 md:pb-4 flex items-baseline gap-3 md:block">
-            <div className="text-[10px] uppercase tracking-label text-fg-subtle">Total base</div>
-            <div className="font-mono text-2xl md:text-3xl text-fg-muted tabular-nums md:mt-1">
+          <div className="shrink-0 md:pb-4">
+            <div className="text-[10px] uppercase tracking-label text-fg-subtle md:text-right">Total base</div>
+            <div className="font-mono text-2xl md:text-3xl text-fg-muted tabular-nums mt-1 md:text-right">
               <Numeral value={totalGuests} /> contacts
+            </div>
+            {/* Segment mini-bar */}
+            <div className="flex gap-[2px] mt-3 h-[6px] rounded-full overflow-hidden" style={{ width: '180px' }}>
+              {SEGMENT_ORDER.map((seg) => {
+                const count = counts[seg] ?? 0;
+                if (!count) return null;
+                const pct = (count / guests.length) * 100;
+                return (
+                  <div
+                    key={seg}
+                    className="h-full transition-all duration-500 first:rounded-l-full last:rounded-r-full"
+                    style={{
+                      width: `${Math.max(pct, 3)}%`,
+                      backgroundColor: SEGMENT_HEX[seg],
+                      opacity: scope === 'all' || scope === seg ? 1 : 0.25,
+                    }}
+                    title={`${SEGMENT_CONFIG[seg].label}: ${count}`}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>
@@ -127,10 +147,14 @@ export function AudienceClient({
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-3">
           <Label>Featured guests</Label>
           <span
-            className="font-mono text-[11px] uppercase tabular-nums"
+            className="font-mono text-[11px] uppercase tabular-nums inline-flex items-center gap-2"
             style={{ letterSpacing: '0.14em', color: 'var(--fg-subtle)' }}
           >
-            Showing <span style={{ color: 'var(--fg)' }}>{filtered.length}</span> /{' '}
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: filtered.length > 0 ? 'var(--k-green, #0e5e48)' : 'var(--fg-faint)' }}
+            />
+            Showing <span style={{ color: 'var(--fg)', fontWeight: 600 }}>{filtered.length}</span> /{' '}
             {guests.length}
             {truncated && (
               <>
@@ -148,10 +172,13 @@ export function AudienceClient({
           />
         </div>
 
-        <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+        <div
+          className="mt-4 flex flex-col md:flex-row md:items-center gap-4 md:gap-6 px-4 py-3 rounded-sm"
+          style={{ background: 'var(--bg-sunken)', border: '1px solid var(--hairline)' }}
+        >
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className="text-[10px] uppercase tracking-label"
+              className="text-[10px] uppercase tracking-label font-semibold"
               style={{ color: 'var(--fg-subtle)', letterSpacing: '0.16em' }}
             >
               Sort
@@ -163,13 +190,14 @@ export function AudienceClient({
                   key={opt.value}
                   type="button"
                   onClick={() => setSort(opt.value)}
-                  className="font-mono text-[10px] uppercase px-2.5 py-1.5 transition-colors"
+                  className="font-mono text-[10px] uppercase px-2.5 py-1.5 transition-all duration-150 rounded-sm"
                   style={{
                     letterSpacing: '0.12em',
                     color: active ? 'var(--fg)' : 'var(--fg-subtle)',
                     border: '1px solid',
-                    borderColor: active ? 'var(--fg)' : 'var(--hairline-strong)',
+                    borderColor: active ? 'var(--fg)' : 'transparent',
                     background: active ? 'var(--bg-raised)' : 'transparent',
+                    boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                   }}
                 >
                   {opt.label}
@@ -178,9 +206,11 @@ export function AudienceClient({
             })}
           </div>
 
+          <div className="hidden md:block w-px h-5" style={{ background: 'var(--hairline-strong)' }} />
+
           <div className="flex items-center gap-2 flex-wrap">
             <span
-              className="text-[10px] uppercase tracking-label"
+              className="text-[10px] uppercase tracking-label font-semibold"
               style={{ color: 'var(--fg-subtle)', letterSpacing: '0.16em' }}
             >
               Visits
@@ -192,13 +222,14 @@ export function AudienceClient({
                   key={opt.value}
                   type="button"
                   onClick={() => setMinVisits(opt.value)}
-                  className="font-mono text-[10px] uppercase px-2.5 py-1.5 transition-colors"
+                  className="font-mono text-[10px] uppercase px-2.5 py-1.5 transition-all duration-150 rounded-sm"
                   style={{
                     letterSpacing: '0.12em',
                     color: active ? 'var(--fg)' : 'var(--fg-subtle)',
                     border: '1px solid',
-                    borderColor: active ? 'var(--fg)' : 'var(--hairline-strong)',
+                    borderColor: active ? 'var(--fg)' : 'transparent',
                     background: active ? 'var(--bg-raised)' : 'transparent',
+                    boxShadow: active ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                   }}
                 >
                   {opt.label}
@@ -207,21 +238,34 @@ export function AudienceClient({
             })}
           </div>
 
+          <div className="hidden md:block w-px h-5" style={{ background: 'var(--hairline-strong)' }} />
+
           <div className="flex-1 md:max-w-[280px]">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name…"
-              aria-label="Search guests by name"
-              className="w-full bg-transparent px-3 py-2 text-[12px] focus:outline-none"
-              style={{
-                fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
-                color: 'var(--fg)',
-                border: '1px solid var(--hairline-strong)',
-                letterSpacing: '-0.005em',
-              }}
-            />
+            <div className="relative">
+              <svg
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                width="14" height="14" viewBox="0 0 24 24" fill="none"
+                stroke="var(--fg-faint)" strokeWidth="2" strokeLinecap="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name…"
+                aria-label="Search guests by name"
+                className="w-full bg-bg-raised pl-8 pr-3 py-2 text-[12px] rounded-sm focus:outline-none transition-shadow duration-150"
+                style={{
+                  fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
+                  color: 'var(--fg)',
+                  border: '1px solid var(--hairline)',
+                  letterSpacing: '-0.005em',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)',
+                }}
+              />
+            </div>
           </div>
         </div>
       </section>

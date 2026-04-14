@@ -60,13 +60,16 @@ export function FilterBar({ options, value, onChange, label, className }: Props)
               handleKey(e, i);
             }}
             className={cn(
-              'group inline-flex items-center gap-2 px-3 py-2 text-[11px] uppercase font-[600] cursor-pointer select-none whitespace-nowrap transition-colors',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]'
+              'group inline-flex items-center gap-2 px-3 py-2 text-[11px] uppercase font-[600] cursor-pointer select-none whitespace-nowrap transition-all duration-200',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]',
+              active ? 'rounded-sm' : ''
             )}
             style={{
               letterSpacing: '0.16em',
               color: active ? 'var(--fg)' : 'var(--fg-muted)',
               borderBottom: active ? '2px solid var(--fg)' : '2px solid transparent',
+              background: active ? 'var(--bg-raised)' : 'transparent',
+              boxShadow: active ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >

@@ -38,7 +38,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose, pendingCount = 0 }:
         className="px-7 py-7"
         style={{ borderBottom: '1px solid var(--hairline)' }}
       >
-        <Link href="/dashboard" className="inline-block" onClick={onMobileClose}>
+        <Link href="/hub" className="inline-block" onClick={onMobileClose}>
           <Logo />
         </Link>
         <div

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { SegmentBadge } from '@/components/ui/Badge';
 import { Label } from '@/components/ui/Label';
 import { Numeral } from '@/components/ui/Numeral';
+import { SEGMENT_HEX } from '@/lib/constants';
 import type { Segment } from '@/lib/types';
 
 interface Row {
@@ -39,12 +40,18 @@ export function GuestList({ rows }: { rows: Row[] }) {
         >
           <Link
             href={`/audience/${row.id}` as const}
-            className={`block md:grid ${GRID_COLS} md:gap-6 md:items-center pl-5 pr-5 md:pl-6 md:pr-6 py-4 md:py-5 border-b border-hairline hover:bg-bg-raised transition-colors duration-150`}
+            className={`group relative block md:grid ${GRID_COLS} md:gap-6 md:items-center pl-5 pr-5 md:pl-6 md:pr-6 py-4 md:py-5 border-b border-hairline hover:bg-bg-raised transition-all duration-200`}
           >
+            {/* Segment accent bar */}
+            <span
+              aria-hidden
+              className="absolute left-0 top-0 bottom-0 w-[2px] transition-[width,opacity] duration-200 group-hover:w-[4px] opacity-0 group-hover:opacity-100"
+              style={{ backgroundColor: SEGMENT_HEX[row.segment] }}
+            />
             {/* Name + mobile inline segment */}
             <div className="flex items-start justify-between gap-3 md:block">
               <div
-                className="font-display text-lg text-fg truncate min-w-0"
+                className="font-display text-lg text-fg truncate min-w-0 group-hover:translate-x-0.5 transition-transform duration-200"
                 style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
               >
                 {row.name}
