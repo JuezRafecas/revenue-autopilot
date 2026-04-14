@@ -4,7 +4,18 @@ Fuente de verdad de la API HTTP del proyecto. Cada cambio en `app/api/**` actual
 
 - **Producto**: Revenue Autopilot para restaurantes. Pipeline: `CDP → Trigger → Audience → Workflow → Metrics`. Ver [`AGENTS.md`](../AGENTS.md) §1.
 - **Stack**: Next.js 15 App Router · TypeScript · Supabase (Postgres) · Anthropic Claude SDK.
-- **Tipos de dominio**: [`lib/types.ts`](../lib/types.ts). Schema: [`supabase/migrations/001_initial_schema.sql`](../supabase/migrations/001_initial_schema.sql) + [`supabase/migrations/002_campaigns.sql`](../supabase/migrations/002_campaigns.sql).
+- **Tipos de dominio**: [`lib/types.ts`](../lib/types.ts). Schema: [`supabase/migrations/001_initial_schema.sql`](../supabase/migrations/001_initial_schema.sql) + [`supabase/migrations/002_campaigns.sql`](../supabase/migrations/002_campaigns.sql) + [`003_cdp_raw.sql`](../supabase/migrations/003_cdp_raw.sql).
+
+## Changelog — 2026-04-14 (reseed v2)
+
+- **Nuevos CSVs de Woki con `guest_id` directo**: `la_cabrera_cdp_visit.csv` ahora trae `guest_id` (18.717 filas), y `la_cabrera_guest_partner.csv` agrega `guest_id`, `guest_primary_phone`, `guest_phone_iso_code` (46.540 filas). El gap visit↔guest_partner desaparece — ya no se resuelve por los `visitId` embebidos en insights.
+- **Seed en una sola pasada**: [`lib/cdp-seed.ts:reseedFromCsvs`](../lib/cdp-seed.ts) es el helper compartido que usan `scripts/seed-v2.ts` (CLI) y `POST /api/cdp/import` (HTTP). Wipe + raw insert + proyección + random names + amounts sintetizados + guest_profiles calculados desde las visits nuevas. Idempotente.
+- **Nombres reales (sintéticos)**: durante el seed, cada guest recibe un nombre AR determinista (hash del `guest_id` → pool de ~130 nombres × ~100 apellidos). Teléfonos: el real si el CSV lo trae, si no `+54 9 11 XXXX XXXX` sintetizado determinista.
+- **Amounts por visita**: `visits.amount` se sintetiza con `party_size × avg_ticket × uniform(0.75, 1.35)` para visitas `ARRIVED`; usa `guarantee_amount` cuando `has_guarantee=true`. Los totales (`guest_profiles.total_spent`, `avg_amount`) se recalculan desde los visits nuevos.
+- **Segmentación end-to-end**: `classifyProfiles` + `classifyGuests` en [`lib/segmentation.ts`](../lib/segmentation.ts). Ruleset: LEAD (0 visitas) · NEW / ACTIVE / VIP recientes (≤30d) · DORMANT (> 2× avg o > 60d) · AT_RISK entre medio. RFM 1-5 absoluto.
+- **Revenue opportunity**: [`lib/revenue.ts`](../lib/revenue.ts) con multipliers por segmento (dormant 0.2 · at_risk 0.4 · lead 0.3 · new 0.6 · active 1.5 · vip 2.5). `totalRevenueAtStake = Σ count × avg_ticket × multiplier`.
+- **Rutas persistentes**: casi todas las rutas mock pasaron a real. Ver §3 para status actualizado.
+- **Gap conocido desaparecido**: el workaround del resolver `visitId → guest` vía insights sigue documentado para referencia histórica pero ya no se usa — `cdp_visits.guest_id` joinea directo.
 
 ## Leyenda de estados
 
@@ -30,27 +41,25 @@ Fuente de verdad de la API HTTP del proyecto. Cada cambio en `app/api/**` actual
 
 Antes de diseñar, vale entender qué data cruda tenemos. Los CSVs bajo el root del repo son la fuente del hackathon, y se importan **1:1** a las tablas `cdp_*` de la migración [`003_cdp_raw.sql`](../supabase/migrations/003_cdp_raw.sql) sin pérdida de información:
 
-| CSV | Filas | Tabla raw (migración 003) | Rol |
+| CSV | Filas (v2) | Tabla raw (migración 003) | Rol |
 |---|---|---|---|
-| `la_cabrera_cdp_visit.csv` | 18.725 | `cdp_visits` (PK `visit_id text`) | Fact table de visitas (reservas) |
-| `la_cabrera_guest_partner.csv` | 60.280 | `cdp_guest_partners` (PK `guest_partner_id text`) | Guest × restaurante — espejo del guest_partner |
-| `la_cabrera_guest_unified.csv` | 56.049 | `cdp_guest_unified` (PK `guest_id text`) | Guest unificado cross-tenant |
+| `la_cabrera_cdp_visit.csv` | 18.717 | `cdp_visits` (PK `visit_id text`) | Fact table de visitas (reservas) |
+| `la_cabrera_guest_partner.csv` | 46.540 | `cdp_guest_partners` (PK `guest_partner_id text`) | Guest × restaurante — espejo del guest_partner |
+| `la_cabrera_guest_unified.csv` | 34.665 | `cdp_guest_unified` (PK `guest_id text`) | Guest unificado cross-tenant |
 
-> Las tablas `cdp_*` son de **sólo lectura** después del import. Cualquier mutación (segmentación, campañas, mensajes) vive en el app layer (ver §2.0). El header de `003_cdp_raw.sql` lo dice textual: *"No FKs to app tables: the CDP export does not carry a cdp_visit ↔ cdp_guest_partner link (known gap)."* Ese gap se resuelve por los `visitId` embebidos en los insights de `cdp_guest_partners` — más abajo.
+> **Cambio v2 (2026-04-14)**: el nuevo `la_cabrera_cdp_visit.csv` ahora trae una columna **`guest_id`** directa, que apunta al mismo `guest_id` que usa `cdp_guest_partners.guest_id`. Eso resuelve el gap histórico visit↔guest_partner sin necesidad de recorrer `visitId` embebidos en insights. El seed ([`lib/cdp-seed.ts`](../lib/cdp-seed.ts)) proyecta directo: `cdp_visits.guest_id → guest_partners.guest_id → guests.id`.
+>
+> Las columnas nuevas (`cdp_visits.guest_id`, `cdp_guest_partners.guest_id`/`guest_primary_phone`/`guest_phone_iso_code`, `cdp_guest_unified.primary_phone`/`primary_phone_iso_code`/`company_name`) no están en la migración 003 — el seed las usa **in-memory** durante la proyección. Las tablas raw conservan el schema 003 original. Si el futuro quiere persistirlas, hace falta `004_cdp_raw_v2.sql`.
 
-### Visitas (39 columnas)
+### Visitas (v2 — ahora con guest_id directo)
 
-- **Estados**: `ARRIVED` 14.262 · `CANCELLED_BY_GUEST` 3.534 · `ACCEPTED` 594 · `CANCELLED_BY_VENUE` 199 · `CONFIRMED` 75 · `PENDING_CONFIRMATION` 34 · `EDITED_BY_PARTNER` 18 · `CREATED` 8 · `NO_SHOW` 1.
+- **Estados** (dist. aproximada): `ARRIVED` ~14k · `CANCELLED_BY_GUEST` ~3.5k · `ACCEPTED` ~600 · `CANCELLED_BY_VENUE` ~200 · `CONFIRMED` ~75 · resto menor.
 - **`visit_type`**: 100% `RESERVATION` (sin walk-ins).
 - **Canales**: `SHARED_LINK`, `SEARCH_ENGINE`, `QUICK_ADD`, `MARKETPLACE`, `CONSUMER_DIRECT`, `VENUE_STAFF`.
-- **Campos útiles**: `visit_id`, `partner_id`, `party_size`, `sector_name`, `channel`, `platform`, `state`, `visited_at`, `has_guarantee`, `guarantee_amount`, `shift_id`, `cancelled_by`, `cancelled_at`, `confirmed_at`, `accepted_at`.
-- **Campos vacíos en 100% de la muestra** (ignorar en el mapeo): `score`, `review_*`, `guest_comment`, `venue_comment`, `tags`, `arrived_at`, `departed_at`, `discount_percentage`, `no_show_at`, `rejected_at`.
-- **⚠ No hay columna de guest**. El visit CSV no trae `guest_id` ni `guest_partner_id`. El único vínculo visit ↔ guest vive en los JSON embebidos de `guest_partner`:
-  - `guarantee_insights.bookings[].visitId`
-  - `cancellation_insights.cancellations[].visitId`
-  - `review_insights.reviews[].visitId` (vacío en la muestra)
-
-  Cualquier flujo que necesite "las visitas de este guest" tiene que resolverse desde esos arrays, no desde un JOIN directo.
+- **Columnas nuevas v2**: **`guest_id`** (link directo a guest_partner). Removidas: `guest_comment`, `venue_comment`, `review_comment`, `review_venue_reply` (estaban vacías igual).
+- **Campos útiles**: `visit_id`, **`guest_id`**, `partner_id`, `party_size`, `sector_name`, `channel`, `platform`, `state`, `visited_at`, `has_guarantee`, `guarantee_amount`, `shift_id`, `cancelled_by`, `cancelled_at`, `confirmed_at`, `accepted_at`.
+- **Campos vacíos**: `score`, `review_*`, `tags`, `arrived_at`, `departed_at`, `discount_percentage`, `no_show_at`, `rejected_at`.
+- **Amount**: el CSV no trae monto por visita. Durante el seed (`reseedFromCsvs`) se sintetiza: `amount = party_size × avg_ticket × uniform(0.75, 1.35)` para visitas `ARRIVED`; si `has_guarantee=true` se usa `guarantee_amount` directo. Randomness determinista (seed = hash del `visit_id`) para reproducibilidad entre runs.
 
 Mapeo a `visits`:
 
@@ -64,9 +73,9 @@ amount = has_guarantee ? guarantee_amount : null   (fallback: restaurant.avg_tic
 score = null                                       (los prompts toleran null)
 ```
 
-### Guest × Restaurant (70 columnas)
+### Guest × Restaurant (v2)
 
-- **Identidad disponible**: `guest_partner_id`, `guest_name` (sintético: `Guest 51854`), `guest_email` (sintético: `guest51854@demo.com`). **No hay teléfono.**
+- **Identidad disponible**: `guest_partner_id`, **`guest_id`** (nuevo), `guest_name` (sintético: `Guest 33633` en el CSV — el seed lo reemplaza por un nombre AR real determinista), `guest_primary_email` (ej: `guest_3957@demo.com`), `guest_primary_phone` (real cuando viene; el seed lo sintetiza `+54 9 11 XXXX XXXX` si está vacío), `guest_phone_iso_code` (ej: `AR`).
 - **Contadores**: `total_visits`, `total_walkins`, `total_bookings`, `total_pending`, `total_no_shows`, `total_cancellations`, `total_rejected`.
 - **Tasas**: `no_show_rate`, `cancellation_rate`, `rejection_rate`, `booking_conversion_rate`, `confirmation_rate`.
 - **Insights JSON embebidos**: `guarantee_insights` (única fuente de monetario: `{ totalAmount, totalBookings, bookings[] }`), `cancellation_insights`, `review_insights` (vacío), `channel_insights`, `waitlist_insights` (vacío).
@@ -80,12 +89,13 @@ Mapeo a `guest_profiles` vía [`lib/cdp.ts:cdpGuestPartnerToProfile`](../lib/cdp
 
 Mismo guest en varios partners con versiones `_global` de los contadores. En el hackathon lo usamos para **enriquecer** señales de VIP (ej: `total_tenants > 1` como indicador de alto valor cross-brand), no como fuente primaria.
 
-### Qué no tenemos y cómo lo compensamos
+### Qué no tenemos y cómo lo compensamos (v2)
 
 | Falta | Impacto | Workaround |
 |---|---|---|
-| Teléfonos | No hay sendable WhatsApp real | `Guest.phone = null`; canal primario pasa a email o `whatsapp_then_email` sólo para demo |
-| Ticket real | No se puede calcular `total_spent` preciso | Usar `guarantee_insights.totalAmount` como approximación, fallback a `restaurant.avg_ticket` |
+| Nombres reales | La data viene anonimizada (`Guest 33633`) | Seed genera nombres AR reales (`Walter Vázquez`, `Clara Bravo`, etc.) determinísticos vía hash del `guest_id` sobre un pool de ~130 nombres × ~100 apellidos |
+| Teléfonos completos | Muchos vienen vacíos | Si el CSV trae `guest_primary_phone`, se usa; si no, se sintetiza `+54 9 11 XXXX XXXX` determinista |
+| Ticket real por visita | El CSV no trae amount por visita | Se sintetiza `party_size × avg_ticket × uniform(0.75, 1.35)` por visita `ARRIVED`; para visitas con `has_guarantee=true` se usa `guarantee_amount`. `total_spent` / `avg_amount` en `guest_profiles` se recalculan desde esos montos sintetizados |
 | Reviews / scores | Los prompts tenían hooks de `score` | Los prompt builders en [`lib/prompts.ts`](../lib/prompts.ts) toleran `null` |
 
 ---
@@ -568,9 +578,11 @@ Ingesta del CSV legacy (12 columnas) desde el flow de upload de la UI.
 - **Errores**: `400` archivo faltante / CSV inválido · `500` error de DB.
 - **Implementación**: [`app/api/upload/route.ts`](../app/api/upload/route.ts). Upserta `restaurants` por slug, dedupea `guests` por `name|phone`, inserta `visits` en batches de 500 usando `getServiceClient()` de [`lib/supabase.ts`](../lib/supabase.ts).
 
-#### `POST /api/cdp/import` ➕ 🔴
+#### `POST /api/cdp/import` ✅
 
-Ingesta de los CSVs nativos del CDP (formato La Cabrera). Flujo de dos pasos: **raw insert** (llena `cdp_*`) + **proyección** (materializa `guests` + `guest_profiles` + `visits` a partir del raw).
+Ingesta de los CSVs nativos del CDP (formato La Cabrera). Flujo: **raw insert** (llena `cdp_*`) + **proyección** (materializa `guests` + `guest_profiles` + `visits`, genera nombres + teléfonos + amounts sintetizados).
+
+Thin wrapper sobre [`lib/cdp-seed.ts:reseedFromCsvs`](../lib/cdp-seed.ts), que también usa `scripts/seed-v2.ts`.
 
 - **Request**: `multipart/form-data`
   - `guest_partner_file: File` — obligatorio. Destino raw: `cdp_guest_partners`.
@@ -600,29 +612,19 @@ Ingesta de los CSVs nativos del CDP (formato La Cabrera). Flujo de dos pasos: **
   2. Upsert en `cdp_guest_partners`, `cdp_visits`, `cdp_guest_unified` por su PK text. Idempotente: re-ejecutar pisa el estado anterior.
   3. Upsert `restaurants` desde `DEFAULT_RESTAURANT`.
 
-  **Paso 2 — Proyección al app layer**:
+  **Paso 2 — Proyección al app layer** (v2 — usa `cdp_visits.guest_id` directo):
   4. Por cada row en `cdp_guest_partners`:
-     - Insertar un `guests` row (`name = guest_name`, `email = guest_email`, `phone = null`, `restaurant_id = <resolved>`). El `guests.id` se genera como uuid nuevo.
-     - Llamar [`cdpGuestPartnerToProfile(row, restaurantId)`](../lib/cdp.ts) y upsertear el resultado en `guest_profiles` (con `guest_id` apuntando al uuid del paso anterior).
-  5. **Construir el reverse-index** `Map<cdp_visit_id, guest_uuid>` recorriendo los insights del raw:
-     ```ts
-     const index = new Map<string, string>();
-     for (const gp of cdpGuestPartners) {
-       const g = guestIdByPartnerId.get(gp.guest_partner_id)!;
-       for (const b of gp.guarantee_insights?.bookings ?? []) index.set(b.visitId, g);
-       for (const c of gp.cancellation_insights?.cancellations ?? []) index.set(c.visitId, g);
-       for (const r of gp.review_insights?.reviews ?? []) {
-         if (typeof r.visitId === 'string') index.set(r.visitId, g);
-       }
-     }
-     ```
-  6. Proyectar `cdp_visits` → `visits`: por cada row mapear estados (`ARRIVED→completed`, `CANCELLED_BY_*→cancelled`, `NO_SHOW→no_show`, resto → `pending`), `amount = has_guarantee ? guarantee_amount : null`, `visit_date = visited_at`, `guest_id = index.get(cdp_visit.visit_id) ?? null`. Insertar en batches de 500.
+     - Insertar un `guests` row con `name = generateName(guest_id)` (nombre AR real determinista), `phone = generatePhone(guest_id, csv_phone)`, `email = guest_primary_email`. El `guests.id` se genera como uuid nuevo.
+     - Llamar [`cdpGuestPartnerToProfile(row, restaurantId)`](../lib/cdp.ts) y upsertear el resultado en `guest_profiles`.
+  5. **Construir el índice** `Map<cdp_guest_id, guest_uuid>` durante los inserts de `guests` (one entry per `guest_partner.guest_id`). El primer row gana cuando un mismo `guest_id` aparece en varios partners.
+  6. Proyectar `cdp_visits` → `visits`: por cada row mapear estados, `amount = synthVisitAmount(v, avgTicket)`, `visit_date = visited_at`, `guest_id = index.get(v.guest_id)`. Visits sin match (~8%) se dropean como orphans.
+  7. Re-calcular `guest_profiles.total_spent` y `avg_amount` sumando los amounts sintetizados por `guest_id`. Fallback al `guarantee_insights.totalAmount` sólo si no hay visits proyectados.
   7. Visits sin match en el index quedan con `guest_id = null` — esperable para cualquier visit cuyo `visitId` no aparezca en los insights. No rompe nada.
   8. Los insights JSON **no se duplican** en el app layer: viven sólo en `cdp_guest_partners`. Cualquier endpoint que los necesite joinea por `guest_partner_id` o `guest_email`.
 
-#### `POST /api/analyze` 🔴
+#### `POST /api/analyze` ✅
 
-Diagnóstico: lee visits, calcula profiles + segmentos, devuelve summaries. Es el pulso del dashboard.
+Recalcula segmentación: lee `guest_profiles`, aplica `classifyProfiles`, persiste `segment`/`tier`/`rfm_*` y devuelve summaries con revenue_opportunity.
 
 - **Request**:
   ```ts
@@ -631,40 +633,40 @@ Diagnóstico: lee visits, calcula profiles + segmentos, devuelve summaries. Es e
 - **Response**:
   ```ts
   {
+    restaurant_id: string;
     summaries: SegmentSummary[];
     totals: { guests: number; revenue_at_stake: number };
   }
   ```
-- **Errores**: `501` hoy · `500` si `classifyGuests` tira.
-- **Implementación**: [`app/api/analyze/route.ts`](../app/api/analyze/route.ts). Pendiente:
-  1. `supabase.from('visits').select('*').eq('restaurant_id', ...)`.
-  2. Agrupar por `guest_id`, llamar [`classifyGuests`](../lib/segmentation.ts).
-  3. `upsert` a `guest_profiles`.
-  4. Llamar [`buildSegmentSummaries`](../lib/revenue.ts) y [`totalRevenueAtStake`](../lib/revenue.ts).
+- **Errores**: `400` JSON inválido · `500` restaurant no encontrado / error de DB.
+- **Implementación**: [`app/api/analyze/route.ts`](../app/api/analyze/route.ts).
+  1. Fetch paginado (1k por página) de `guest_profiles` del restaurant.
+  2. `classifyProfiles(profiles)` — stamps RFM + segment + tier in-memory.
+  3. Upsert en batches de 500 (sólo las columnas mutadas: `segment`, `tier`, `rfm_*`, `calculated_at`).
+  4. `buildSegmentSummaries(classified, avg_ticket)` + `totalRevenueAtStake(summaries)`.
 
 ### 3.2 Audience (lectura del CDP)
 
-#### `GET /api/audience/segments` 🟡
+#### `GET /api/audience/segments` ✅
 
-- **Query**: ninguno (futuro: `restaurant_id?`).
+- **Query**: ninguno.
 - **Response**: `{ summaries: SegmentSummary[] }`
-- **Estado**: hoy devuelve `MOCK_SEGMENT_SUMMARIES`. Pendiente: `select count, revenue_opportunity from guest_profiles group by segment`.
-- **Implementación**: [`app/api/audience/segments/route.ts`](../app/api/audience/segments/route.ts).
+- **Implementación**: [`app/api/audience/segments/route.ts`](../app/api/audience/segments/route.ts). Hace 6 queries `count` (una por segmento) + 1 total; calcula `revenue_opportunity` con los multipliers de [`lib/revenue.ts`](../lib/revenue.ts) sobre `avg_ticket` del restaurant. Barato y directo — no fetch de filas.
 
-#### `GET /api/audience/guests` 🟡
+#### `GET /api/audience/guests` ✅
 
-Lista de GuestPartners filtrable por segmento/tier.
+Lista de GuestPartners filtrable por segmento/tier, ordenada por `total_spent` desc.
 
 - **Query**:
   - `segment?: Segment`
   - `tier?: AudienceTier`
-  - `limit?: number` (default `50`)
+  - `limit?: number` (default `50`, max `500`)
   - `offset?: number` (default `0`)
-- **Response**: `{ guests: GuestProfile[]; total: number }` (cada `GuestProfile` trae el `guest` — léase GuestPartner — hidratado).
-- **Estado**: hoy filtra sobre `MOCK_GUESTS`. Pendiente: query real con JOIN `guest_profiles ⟕ guests`.
-- **Implementación**: [`app/api/audience/guests/route.ts`](../app/api/audience/guests/route.ts).
+- **Response**: `{ guests: GuestProfile[]; total: number }` (cada profile trae el `guest` — léase GuestPartner — hidratado vía embedded select).
+- **Errores**: `400` segment/tier inválidos.
+- **Implementación**: [`app/api/audience/guests/route.ts`](../app/api/audience/guests/route.ts). Query con `select('*, guest:guests(*)')` + `range()` para paginación.
 
-#### `GET /api/guest-partners/[id]` ➕ 🔴
+#### `GET /api/guest-partners/[id]` ✅
 
 Ficha 360 del guest_partner (un row en `guest_profiles` + contacto).
 
@@ -689,9 +691,9 @@ Ficha 360 del guest_partner (un row en `guest_profiles` + contacto).
 - **Errores**: `404` guest_partner no existe.
 - **Notas**: no incluye visits. Para eso → endpoint siguiente.
 
-#### `GET /api/guest-partners/[id]/visits` ➕ 🔴
+#### `GET /api/guest-partners/[id]/visits` ✅
 
-Resuelve las visitas asociadas a un guest_partner leyendo los `visitId` embebidos en los insights JSON de `cdp_guest_partners` y joineando contra `cdp_visits` por `visit_id`. Este endpoint es la **única** forma correcta de obtener "las visitas de un guest" en este producto (el CDP no trae un link directo visit → guest_partner).
+En v2 esto se volvió un JOIN directo: con el nuevo `cdp_visits.guest_id`, las visitas viven proyectadas en el app layer (`visits.guest_id uuid`) y basta un `select('*').eq('guest_id', X)`. Ya no hace falta recorrer los `visitId` embebidos en insights.
 
 - **Path**: `id` = `guest_profiles.id` o `cdp_guest_partners.guest_partner_id`.
 - **Query**:
@@ -731,16 +733,15 @@ Resuelve las visitas asociadas a un guest_partner leyendo los `visitId` embebido
 
 ### 3.4 Campaigns
 
-#### `GET /api/campaigns` 🟡
+#### `GET /api/campaigns` ✅
 
 - **Query**:
   - `status?: CampaignStatus`
   - `template_key?: TemplateKey`
 - **Response**: `{ campaigns: Campaign[] }`
-- **Estado**: mock. Pendiente: query real a `campaigns`.
-- **Implementación**: [`app/api/campaigns/route.ts`](../app/api/campaigns/route.ts).
+- **Implementación**: [`app/api/campaigns/route.ts`](../app/api/campaigns/route.ts). Query real, ordenado por `updated_at desc`.
 
-#### `POST /api/campaigns` 🟡
+#### `POST /api/campaigns` ✅
 
 Crea una instancia de campaign desde un template.
 
@@ -753,17 +754,17 @@ Crea una instancia de campaign desde un template.
     trigger_overrides?: Partial<CampaignTrigger>;
   }
   ```
-- **Response**: `{ campaign: Campaign }` (status: `'draft'`).
-- **Estado**: devuelve el preview pero no persiste. Pendiente: `insert into campaigns` + `return *`.
-- **Notas**: merge shallow con `audience_filter` / `trigger` del template base. Usa [`lib/campaigns.ts:campaignFromTemplate`](../lib/campaigns.ts).
+- **Response**: `{ campaign: Campaign }` (status: `'draft'`, persistido).
+- **Notas**: merge shallow con `audience_filter` / `trigger` del template base. Usa [`lib/campaigns.ts:campaignFromTemplate`](../lib/campaigns.ts) + [`lib/campaigns-db.ts:campaignInsertPayload`](../lib/campaigns-db.ts) (maneja el mapeo `trigger` ↔ `trigger_config` y metrics denormalizadas).
+- **Requiere**: `campaign_templates` seedeado (FK). El seed-v2 lo hace automáticamente via `seedCampaignTemplates` en [`lib/cdp-seed.ts`](../lib/cdp-seed.ts).
 
-#### `GET /api/campaigns/[id]` 🟡
+#### `GET /api/campaigns/[id]` ✅
 
 - **Response**: `{ campaign: Campaign }`
 - **Errores**: `404` si no existe.
 - **Implementación**: [`app/api/campaigns/[id]/route.ts`](../app/api/campaigns/[id]/route.ts).
 
-#### `PATCH /api/campaigns/[id]` 🔴
+#### `PATCH /api/campaigns/[id]` ✅
 
 - **Request** (whitelist):
   ```ts
@@ -779,7 +780,7 @@ Crea una instancia de campaign desde un template.
 - **Errores**: `404` no encontrado · `400` transición de status inválida · `409` conflicto de versión.
 - **Notas**: si `status: 'active'` → escribir `started_at = now()`.
 
-#### `DELETE /api/campaigns/[id]` 🔴
+#### `DELETE /api/campaigns/[id]` ✅
 
 Soft delete.
 
@@ -787,7 +788,7 @@ Soft delete.
 - **Errores**: `404` no encontrado.
 - **Notas**: update `status='archived'`, `completed_at=now()`. No borra mensajes históricos.
 
-#### `POST /api/campaigns/[id]/run` 🔴
+#### `POST /api/campaigns/[id]/run` ✅
 
 Ejecuta el workflow: materializa audiencia, genera mensajes en `pending_approval`, arranca contadores.
 
@@ -805,29 +806,30 @@ Ejecuta el workflow: materializa audiencia, genera mensajes en `pending_approval
   }
   ```
 - **Errores**: `404` · `409` si la campaign ya está `completed` o `archived` · `500` si falla generación de mensajes.
-- **Notas de implementación**:
-  1. Cargar campaign + template.
-  2. Query `guest_profiles` y filtrar con [`filterProfiles`](../lib/audience.ts).
-  3. Por cada profile: invocar el step `send_message` inicial del workflow → llamar [`generateMessage`](../lib/claude.ts) con el prompt builder correspondiente (`prompt_key`) → insert `messages` con `status='pending_approval'`.
-  4. Si `dry_run=true`: calcular audience_size y tirar rollback.
-  5. Update `campaigns.status='active'` + `started_at=now()`.
+- **Response**: `{ campaign_id, audience_size, messages_generated, capped_at, dry_run }`.
+- **Notas de implementación** ([`app/api/campaigns/[id]/run/route.ts`](../app/api/campaigns/[id]/run/route.ts)):
+  1. Cargar campaign + campaignFromRow.
+  2. Fetch paginado de `guest_profiles` (con `guest` hidratado), filtrar con [`filterProfiles`](../lib/audience.ts).
+  3. **Cap conservador**: `MAX_MESSAGES_PER_RUN = 20` para no quemar la Anthropic API en demo. Ordena por `rfm_frequency + rfm_monetary` desc y toma los top 20.
+  4. Por cada profile: resolver el primer `send_message` step del workflow → build prompt según `prompt_key` (`reactivation` / `second_visit` / `post_visit` / `fill_tables`) → `generateMessage(system, user)` via Claude → insert `messages` con `status='pending_approval'`.
+  5. Si `dry_run=true`: devuelve audience_size sin generar.
+  6. Al final: update `campaigns.status='active'` + `started_at`.
 
-#### `GET /api/campaigns/[id]/messages` 🟡
+#### `GET /api/campaigns/[id]/messages` ✅
 
 - **Query**: `status?: MessageStatus`
-- **Response**: `{ campaign_id: string; messages: Message[] }`
-- **Estado**: hoy filtra mocks por nombre. Pendiente: query real con JOIN a `guests`.
+- **Response**: `{ campaign_id: string; messages: Message[] }` (con `guest` hidratado).
 - **Implementación**: [`app/api/campaigns/[id]/messages/route.ts`](../app/api/campaigns/[id]/messages/route.ts).
 
 ### 3.5 Messages
 
-#### `GET /api/messages` 🟡
+#### `GET /api/messages` ✅
 
 - **Query**: `status?`, `campaign_id?`, `guest_id?`.
 - **Response**: `{ messages: Message[] }` (con `guest` y `campaign` hidratados).
 - **Implementación**: [`app/api/messages/route.ts`](../app/api/messages/route.ts).
 
-#### `POST /api/messages/[id]/approve` 🔴
+#### `POST /api/messages/[id]/approve` ✅
 
 - **Request**: `{}`
 - **Response**:
@@ -837,7 +839,7 @@ Ejecuta el workflow: materializa audiencia, genera mensajes en `pending_approval
 - **Errores**: `404` · `409` si `status !== 'pending_approval'`.
 - **Notas**: update `status='approved'`, `approved_at=now()`, encolar para delivery (hoy: mock en cola en memoria, pendiente: provider real).
 
-#### `POST /api/messages/[id]/reject` ➕ 🔴
+#### `POST /api/messages/[id]/reject` ✅
 
 - **Request**:
   ```ts
@@ -850,7 +852,7 @@ Ejecuta el workflow: materializa audiencia, genera mensajes en `pending_approval
 - **Errores**: `404` · `409` si ya salió del estado `pending_approval`.
 - **Notas**: update `status='skipped'`, guardar `reason` en `error_message` para auditoría.
 
-#### `POST /api/messages/[id]/regenerate` ➕ 🔴
+#### `POST /api/messages/[id]/regenerate` ✅
 
 Re-genera el contenido de un mensaje antes de aprobarlo.
 
@@ -883,7 +885,7 @@ Endpoint standalone para generar un mensaje ad-hoc sin persistir. Sirve al UI de
 
 ### 3.6 Events
 
-#### `POST /api/events/trigger` 🟡
+#### `POST /api/events/trigger` ✅
 
 Encola un evento que el scheduler/dispatcher debería procesar para disparar automations.
 
@@ -901,10 +903,9 @@ Encola un evento que el scheduler/dispatcher debería procesar para disparar aut
   { event_type: EventType; queued: true; created_at: string }
   ```
 - **Errores**: `400` `event_type` inválido.
-- **Estado**: hoy acepta el request pero no persiste. Pendiente: insert en `events` + dispatcher que matchee contra campaigns con `trigger.type='event'`.
-- **Implementación**: [`app/api/events/trigger/route.ts`](../app/api/events/trigger/route.ts).
+- **Implementación**: [`app/api/events/trigger/route.ts`](../app/api/events/trigger/route.ts). Persiste en `events` con `processed_at=null`. El dispatcher que matchea contra `campaigns.trigger.type='event'` queda fuera de scope del hackathon — hoy es un inbox sin consumer.
 
-#### `GET /api/events` ➕ 🔴
+#### `GET /api/events` ✅
 
 - **Query**:
   - `processed?: boolean` — `true` para sólo procesados, `false` para pendientes.
@@ -915,22 +916,20 @@ Encola un evento que el scheduler/dispatcher debería procesar para disparar aut
 
 ### 3.7 Revenue / KPIs
 
-#### `GET /api/revenue/attribution` 🟡
+#### `GET /api/revenue/attribution` ✅
 
 - **Query**:
   - `from?: string` — ISO date.
   - `to?: string` — ISO date.
   - `campaign_id?: string`
 - **Response**: `{ rows: AttributionSummary[] }`
-- **Estado**: mock. Pendiente: query real con `select campaign_id, count(*), sum(amount) from attributions group by campaign_id`, join a `campaigns` para nombres.
-- **Implementación**: [`app/api/revenue/attribution/route.ts`](../app/api/revenue/attribution/route.ts).
+- **Implementación**: [`app/api/revenue/attribution/route.ts`](../app/api/revenue/attribution/route.ts). Fetch de `attributions` filtrado por rango, agrupa en memoria por `campaign_id` (Supabase PostgREST no soporta group-by), hace join con `campaigns` para names + `metric_sent`.
 
-#### `GET /api/kpis` 🟡
+#### `GET /api/kpis` ✅
 
 - **Query**: `range?: '7d' | '30d' | '90d'` (default `'30d'`).
 - **Response**: `{ kpis: DashboardKPIs }`
-- **Estado**: mock. Pendiente: rollup de `campaigns` + `messages` + `attributions` filtrado por el range.
-- **Implementación**: [`app/api/kpis/route.ts`](../app/api/kpis/route.ts).
+- **Implementación**: [`app/api/kpis/route.ts`](../app/api/kpis/route.ts). Corre 6 queries `count` en paralelo (active campaigns, total guests, messages sent/responded en el range, attributions del range, counts por segmento para revenue_at_stake). `base_health_score = (active + vip + new) / total * 100` (redondeado, 0-100).
 
 ---
 
@@ -947,73 +946,82 @@ Dónde cae cada endpoint en la pipeline del producto:
            ▼
 ┌────── Audience ─────────────┐   ┌───── Trigger ─────┐
 │  GET  /api/audience         │   │ POST /api/events  │
-│       /segments           🟡│   │      /trigger   🟡│
+│       /segments             ✅│  │      /trigger    ✅│
 │  GET  /api/audience         │   │ GET  /api/events  │
-│       /guests             🟡│   │                ➕🔴│
+│       /guests               ✅│  │                  ✅│
 │  GET  /api/guest-partners/  │   └─────────┬─────────┘
-│       [id]              ➕🔴 │             │
+│       [id]                  ✅│            │
 │  GET  /api/guest-partners/  │             │
-│       [id]/visits       ➕🔴 │             │
+│       [id]/visits           ✅│            │
 └──────────┬──────────────────┘             │
            └────────────┬─────────────────┘
                         ▼
              ┌──── Campaign/Workflow ────┐
              │ GET   /api/templates    ✅│
-             │ GET   /api/campaigns   🟡│
-             │ POST  /api/campaigns   🟡│
+             │ GET   /api/campaigns    ✅│
+             │ POST  /api/campaigns    ✅│
              │ GET   /api/campaigns/
-             │       [id]             🟡│
+             │       [id]              ✅│
              │ PATCH /api/campaigns/
-             │       [id]             🔴│
+             │       [id]              ✅│
              │ DEL   /api/campaigns/
-             │       [id]             🔴│
+             │       [id]              ✅│
              │ POST  /api/campaigns/
-             │       [id]/run         🔴│
+             │       [id]/run          ✅│
              │ GET   /api/campaigns/
-             │       [id]/messages    🟡│
+             │       [id]/messages     ✅│
              └──────────┬────────────────┘
                         ▼
              ┌───── Messages ─────┐
-             │ GET   /api/messages          🟡│
+             │ GET   /api/messages          ✅│
              │ POST  /api/generate-message  ✅│
              │ POST  /api/messages/[id]/
-             │       approve                🔴│
+             │       approve                ✅│
              │ POST  /api/messages/[id]/
-             │       reject              ➕🔴 │
+             │       reject                 ✅│
              │ POST  /api/messages/[id]/
-             │       regenerate          ➕🔴 │
+             │       regenerate             ✅│
              └──────────┬─────────────────────┘
                         ▼
              ┌───── Metrics ─────┐
              │ GET /api/revenue/
-             │     attribution 🟡│
-             │ GET /api/kpis   🟡│
+             │     attribution ✅│
+             │ GET /api/kpis   ✅│
              └───────────────────┘
 ```
 
-## 5. Limitaciones conocidas
+## 5. Limitaciones conocidas (v2)
 
-- **Gap cdp_visit ↔ cdp_guest_partner** → el CDP no trae una FK directa. El único puente son los `visitId` embebidos en `guarantee_insights`, `cancellation_insights` y `review_insights` de `cdp_guest_partners`. Cualquier visit que no esté en ninguno de esos arrays no se puede atribuir a un guest_partner. El `GET /api/guest-partners/[id]/visits` y la proyección de `/api/cdp/import` son los dos lugares donde esto se maneja explícitamente.
-- **Sin teléfonos reales en la data** → no hay WhatsApp sendable. El canal por default para demo es email, o `whatsapp_then_email` simulado.
-- **Sin ticket real** → `total_spent` y `avg_amount` son approximaciones desde `guarantee_insights.totalAmount`.
-- **Sin reviews ni scores** → todos los campos `score`, `review_*` del CDP vienen vacíos en la muestra. Los prompts toleran `score: null`. No hay señal de sentiment por guest.
-- **Single-tenant durante el hackathon** → `restaurant_id` se resuelve server-side desde `DEFAULT_RESTAURANT`. Multi-tenant real queda fuera.
-- **Sin delivery providers** → `sent_at`, `delivered_at`, `read_at` se mockean. No hay webhooks inbound.
-- **Sin autenticación** → cualquiera con acceso al dev server puede llamar cualquier endpoint.
-- **`cdp_guest_unified` no se proyecta** → vive sólo en el raw layer. Si hace falta enriquecer (ej. detectar VIP cross-tenant), se joinea on-demand por `guest_email`.
+- **Nombres sintéticos**: la data viene anonimizada y el seed genera nombres AR realistas pero ficticios. Cualquier personalización que los mencione es literalmente lo que el operador ve en el UI.
+- **Teléfonos parcialmente sintéticos**: el CSV trae `guest_primary_phone` en pocos casos; el resto se completa con `+54 9 11 XXXX XXXX` determinista. Para demo es suficiente — no hay delivery real.
+- **Amount por visita sintetizado**: `visits.amount` se calcula como `party_size × avg_ticket × uniform(0.75, 1.35)` (seed = hash del `visit_id` para determinismo). `guarantee_amount` se respeta cuando existe. Los totales en `guest_profiles` son consistentes con estos montos.
+- **Sin reviews ni scores**: los campos `score`/`review_*` del CDP vienen vacíos. Los prompt builders toleran `null`.
+- **Single-tenant**: `restaurant_id` se resuelve server-side desde `DEFAULT_RESTAURANT` (La Cabrera). Multi-tenant queda fuera de scope.
+- **Sin delivery providers**: `sent_at`, `delivered_at`, `read_at` no se completan. No hay webhooks inbound. El approve queda en `approved` sin pasar a `sent`.
+- **Sin dispatcher de eventos**: `POST /api/events/trigger` persiste en `events` pero nada consume la cola para matchear con `campaigns.trigger.type='event'`.
+- **Sin autenticación**: cualquier caller tiene acceso total vía service key server-side.
+- **Cap de mensajes por run**: `POST /api/campaigns/[id]/run` genera máximo `MAX_MESSAGES_PER_RUN = 20` por corrida para no quemar la Anthropic API en demo.
+- **`cdp_*` sin columnas v2**: las columnas nuevas del CSV (`guest_id` en visits/partners, phones, company_name) no se persisten en raw — sólo se usan in-memory durante el seed. Para tenerlas en DB hace falta `004_cdp_raw_v2.sql`.
 
-## 6. Orden de implementación
+## 6. Estado final (v2)
 
-Alineado con [`HACKATHON_PLAN.md`](../HACKATHON_PLAN.md):
+Todos los bloques del plan original están implementados:
 
-1. **Segmentación + Revenue** ([`lib/segmentation.ts`](../lib/segmentation.ts), [`lib/revenue.ts`](../lib/revenue.ts)) — prerrequisito de todo.
-2. **`POST /api/analyze`** — conecta la UI principal a data real.
-3. **`GET /api/audience/segments`** + **`GET /api/audience/guests`** — saca los mocks del dashboard.
-4. **`POST /api/cdp/import`** — permite cargar los CSVs de La Cabrera directamente.
-5. **`POST /api/campaigns` + `POST /api/campaigns/[id]/run` + `POST /api/messages/[id]/approve`** — ciclo "aprobar y ejecutar" end-to-end.
-6. **`GET /api/revenue/attribution` + `GET /api/kpis`** — cierra el tracker de revenue en el dashboard.
-7. **Endpoints ➕ (`/api/guest-partners/[id]`, `/api/guest-partners/[id]/visits`, `/api/messages/[id]/reject|regenerate`, `GET /api/events`)** — quality of life si sobra tiempo. El `/visits` es el que resuelve las visitas de un guest vía los `visitId` de los insights.
+1. ✅ **Segmentación + Revenue** ([`lib/segmentation.ts`](../lib/segmentation.ts) + [`lib/revenue.ts`](../lib/revenue.ts)) — 20+ tests TDD.
+2. ✅ **`POST /api/analyze`** — recalc en DB real.
+3. ✅ **Audience endpoints** — queries reales sobre 46.541 profiles.
+4. ✅ **Reseed v2 + `POST /api/cdp/import`** — pipeline compartido en [`lib/cdp-seed.ts`](../lib/cdp-seed.ts), seed-v2 como CLI.
+5. ✅ **Campaigns full CRUD + run** — persistencia, filtrado, generación con Claude, cap de seguridad.
+6. ✅ **Messages approve/reject/regenerate** — state machine real.
+7. ✅ **Events persist + GET**.
+8. ✅ **KPIs + attribution rollup**.
+
+## 7. Scripts
+
+- **`npx tsx scripts/seed-v2.ts`** — reseed completo desde los 3 CSVs del root del repo. Idempotente. Corre `seedCampaignTemplates` primero (seed de los 5 templates canónicos).
+- **`npx tsx scripts/check-supabase.ts`** — chequeo de conectividad + row counts.
+- **`npx tsx scripts/check-cdp.ts`** — smoke test de restaurants/guests/visits/cdp_* y distribución de segmentos.
 
 ---
 
-**Última actualización**: 2026-04-14. Actualizar este doc en el mismo commit que modifica `app/api/**` o `lib/types.ts`.
+**Última actualización**: 2026-04-14 (reseed v2). Actualizar este doc en el mismo commit que modifica `app/api/**` o `lib/types.ts`.

@@ -17,13 +17,9 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY, {
 
 const BATCH = 1000;
 
-async function upsertBatches<T extends Record<string, unknown>>(
-  table: string,
-  rows: T[],
-  conflictTarget: string,
-) {
+async function upsertBatches<T>(table: string, rows: T[], conflictTarget: string) {
   for (let i = 0; i < rows.length; i += BATCH) {
-    const slice = rows.slice(i, i + BATCH);
+    const slice = rows.slice(i, i + BATCH) as unknown as Record<string, unknown>[];
     const { error } = await db.from(table).upsert(slice, { onConflict: conflictTarget });
     if (error) throw new Error(`${table} batch ${i}: ${error.message}`);
     process.stdout.write(`   ${Math.min(i + BATCH, rows.length)}/${rows.length}\r`);

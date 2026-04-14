@@ -81,6 +81,8 @@ export interface CdpVisitRow {
   visit_id: string;
   tenant: string;
   partner_id: string;
+  /** Direct link to guest (new CSV format). */
+  guest_id: string | null;
   visit_type: CdpVisitType;
   party_size: number | null;
   party_size_seated: number | null;
@@ -124,10 +126,17 @@ export interface CdpVisitRow {
 export interface CdpGuestPartnerRow {
   guest_partner_id: string;
   tenant: string;
+  /** Direct link to the unified guest id (new CSV format). */
+  guest_id: string | null;
   partner_id: string;
   brand_id: string | null;
   guest_name: string | null;
+  /** Was `guest_email` in the old CSV. */
   guest_email: string | null;
+  /** New CSV only. */
+  guest_phone: string | null;
+  /** New CSV only — e.g. "AR". */
+  guest_phone_iso_code: string | null;
   guest_language: string | null;
   location_name: string | null;
   location_categories: string[];
@@ -202,7 +211,13 @@ export interface CdpGuestPartnerRow {
 export interface CdpGuestUnifiedRow {
   guest_id: string;
   name: string | null;
+  /** New CSV only. */
+  company_name: string | null;
   primary_email: string | null;
+  /** New CSV only. */
+  primary_phone: string | null;
+  /** New CSV only — e.g. "AR". */
+  primary_phone_iso_code: string | null;
   total_tenants: number;
   total_locations: number;
   total_visits_global: number;
@@ -336,6 +351,7 @@ export function parseCdpVisitCsv(csv: string): CdpVisitRow[] {
       visit_id: r.visit_id ?? '',
       tenant: r.tenant ?? '',
       partner_id: r.partner_id ?? '',
+      guest_id: str(r.guest_id),
       visit_type: r.visit_type ?? '',
       party_size: num(r.party_size),
       party_size_seated: num(r.party_size_seated),
@@ -381,10 +397,14 @@ export function parseCdpGuestPartnerCsv(csv: string): CdpGuestPartnerRow[] {
     (r): CdpGuestPartnerRow => ({
       guest_partner_id: r.guest_partner_id ?? '',
       tenant: r.tenant ?? '',
+      guest_id: str(r.guest_id),
       partner_id: r.partner_id ?? '',
       brand_id: str(r.brand_id),
       guest_name: str(r.guest_name),
-      guest_email: str(r.guest_email),
+      // New CSV uses `guest_primary_email`; old CSV used `guest_email`. Accept both.
+      guest_email: str(r.guest_primary_email ?? r.guest_email),
+      guest_phone: str(r.guest_primary_phone),
+      guest_phone_iso_code: str(r.guest_phone_iso_code),
       guest_language: str(r.guest_language),
       location_name: str(r.location_name),
       location_categories: arr(r.location_categories),
@@ -459,7 +479,10 @@ export function parseCdpGuestUnifiedCsv(csv: string): CdpGuestUnifiedRow[] {
     (r): CdpGuestUnifiedRow => ({
       guest_id: r.guest_id ?? '',
       name: str(r.name),
+      company_name: str(r.company_name),
       primary_email: str(r.primary_email),
+      primary_phone: str(r.primary_phone),
+      primary_phone_iso_code: str(r.primary_phone_iso_code),
       total_tenants: numOr(r.total_tenants, 0),
       total_locations: numOr(r.total_locations, 0),
       total_visits_global: numOr(r.total_visits_global, 0),

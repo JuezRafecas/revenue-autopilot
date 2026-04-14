@@ -9,6 +9,7 @@ dist
 .DS_Store
 .vercel
 .turbo
+.claude
 next-env.d.ts
 tsconfig.tsbuildinfo
 *.tsbuildinfo
