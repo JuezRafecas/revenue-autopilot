@@ -10,7 +10,14 @@ import {
   buildPostVisitPrompt,
   buildFillTablesPrompt,
 } from '@/lib/prompts';
-import type { Campaign, GuestProfile, Guest, SendMessageStep } from '@/lib/types';
+import type {
+  AudienceFilter,
+  Campaign,
+  GuestProfile,
+  Guest,
+  SendMessageStep,
+} from '@/lib/types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const maxDuration = 300;
 
@@ -97,6 +104,84 @@ function buildPromptForStep(
   return null;
 }
 
+async function runVoiceCampaign(
+  db: SupabaseClient,
+  campaign: Campaign,
+  members: Array<{ name: string; phone: string }>,
+  dryRun: boolean,
+) {
+  const capped = members.slice(0, MAX_MESSAGES_PER_RUN);
+
+  if (dryRun) {
+    return NextResponse.json({
+      campaign_id: campaign.id,
+      audience_size: members.length,
+      messages_generated: 0,
+      dry_run: true,
+    });
+  }
+
+  // Create lightweight guest rows so messages.guest_id can reference a
+  // real guest. No visits or profiles are generated — this is a one-shot
+  // voice list, not a CDP import.
+  const guestPayload = capped.map((m) => ({
+    restaurant_id: campaign.restaurant_id,
+    name: m.name || 'Guest',
+    phone: m.phone,
+    email: null,
+  }));
+
+  const { data: insertedGuests, error: guestErr } = await db
+    .from('guests')
+    .insert(guestPayload)
+    .select('id, phone');
+  if (guestErr) {
+    return NextResponse.json({ error: guestErr.message }, { status: 500 });
+  }
+
+  const stepId =
+    campaign.workflow.find((s) => s.kind === 'make_call')?.id ?? 'call_guest';
+  const nowIso = new Date().toISOString();
+  const messageRows = (insertedGuests ?? []).map((g, idx) => {
+    const member = capped[idx];
+    return {
+      restaurant_id: campaign.restaurant_id,
+      campaign_id: campaign.id,
+      workflow_step_id: stepId,
+      guest_id: g.id,
+      channel: 'call' as const,
+      content: `[voice call stub] would call ${member?.name ?? 'guest'} at ${member?.phone ?? g.phone}`,
+      status: 'sent' as const,
+      sent_at: nowIso,
+    };
+  });
+
+  if (messageRows.length > 0) {
+    const { error: msgErr } = await db.from('messages').insert(messageRows);
+    if (msgErr) {
+      return NextResponse.json({ error: msgErr.message }, { status: 500 });
+    }
+  }
+
+  await db
+    .from('campaigns')
+    .update({
+      status: 'active',
+      started_at: nowIso,
+      updated_at: nowIso,
+      metric_sent: messageRows.length,
+    })
+    .eq('id', campaign.id);
+
+  return NextResponse.json({
+    campaign_id: campaign.id,
+    audience_size: members.length,
+    messages_generated: messageRows.length,
+    capped_at: MAX_MESSAGES_PER_RUN,
+    dry_run: false,
+  });
+}
+
 export async function POST(
   req: Request,
   context: { params: Promise<{ id: string }> },
@@ -135,6 +220,14 @@ export async function POST(
       .single();
     if (!restaurant) {
       return NextResponse.json({ error: 'restaurant not found' }, { status: 500 });
+    }
+
+    // Voice campaigns skip the CDP audience resolution and go straight to
+    // the inline members uploaded from the CSV.
+    const hasMakeCall = campaign.workflow.some((s) => s.kind === 'make_call');
+    const inlineMembers = (campaign.audience_filter as AudienceFilter).members;
+    if (hasMakeCall && inlineMembers && inlineMembers.length > 0) {
+      return runVoiceCampaign(db, campaign, inlineMembers, dryRun);
     }
 
     // Materialize audience. For 46k profiles we fetch in pages.

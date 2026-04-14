@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import Papa from 'papaparse';
 import { getServiceClient } from '@/lib/supabase';
 import { DEFAULT_RESTAURANT } from '@/lib/constants';
-import { campaignFromTemplate } from '@/lib/campaigns';
+import { campaignFromTemplate, voiceCampaignDraft } from '@/lib/campaigns';
 import { campaignFromRow, campaignInsertPayload, type CampaignRow } from '@/lib/campaigns-db';
 import type {
   AudienceFilter,
@@ -53,6 +54,11 @@ interface CreatePayload {
 }
 
 export async function POST(req: Request) {
+  const contentType = req.headers.get('content-type') ?? '';
+  if (contentType.includes('multipart/form-data')) {
+    return createVoiceCampaignFromFormData(req);
+  }
+
   let body: CreatePayload;
   try {
     body = (await req.json()) as CreatePayload;
@@ -106,6 +112,108 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'insert returned no row' }, { status: 500 });
     }
     return NextResponse.json({ campaign: campaignFromRow(data as CampaignRow) }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Voice campaign creation from multipart form data (CSV audience + schedule).
+// ----------------------------------------------------------------------------
+
+interface VoiceCsvRow {
+  name?: string;
+  phone?: string;
+}
+
+async function createVoiceCampaignFromFormData(req: Request) {
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return NextResponse.json({ error: 'invalid multipart body' }, { status: 400 });
+  }
+
+  const name = (form.get('name') ?? '').toString().trim();
+  const scheduleAt = (form.get('schedule_at') ?? '').toString().trim();
+  const file = form.get('file');
+
+  if (!name) {
+    return NextResponse.json({ error: 'name is required' }, { status: 400 });
+  }
+  if (!scheduleAt || Number.isNaN(Date.parse(scheduleAt))) {
+    return NextResponse.json({ error: 'schedule_at must be a valid ISO datetime' }, { status: 400 });
+  }
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: 'file is required' }, { status: 400 });
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    return NextResponse.json({ error: 'file exceeds 50 MB limit' }, { status: 400 });
+  }
+
+  const text = await file.text();
+  const parsed = Papa.parse<VoiceCsvRow>(text, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim().toLowerCase(),
+  });
+  if (parsed.errors.length > 0) {
+    return NextResponse.json(
+      { error: 'CSV parse failed', details: parsed.errors.slice(0, 3) },
+      { status: 400 },
+    );
+  }
+
+  const members = parsed.data
+    .map((row) => ({
+      name: (row.name ?? '').toString().trim(),
+      phone: (row.phone ?? '').toString().trim(),
+    }))
+    .filter((m) => m.phone.length > 0);
+
+  if (members.length === 0) {
+    return NextResponse.json(
+      { error: 'CSV must have at least one row with a phone column' },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const db = getServiceClient();
+    const { data: restaurant } = await db
+      .from('restaurants')
+      .select('id')
+      .eq('slug', DEFAULT_RESTAURANT.slug)
+      .maybeSingle();
+    if (!restaurant) {
+      return NextResponse.json({ error: 'restaurant not found' }, { status: 500 });
+    }
+
+    const draft = voiceCampaignDraft(restaurant.id, {
+      name,
+      scheduleAt: new Date(scheduleAt).toISOString(),
+      members,
+    });
+    const payload = campaignInsertPayload(draft);
+    const { data, error } = await db
+      .from('campaigns')
+      .insert(payload)
+      .select('*')
+      .single();
+    if (error) {
+      return NextResponse.json(
+        { error: error.message, details: error.details, hint: error.hint },
+        { status: 500 },
+      );
+    }
+    if (!data) {
+      return NextResponse.json({ error: 'insert returned no row' }, { status: 500 });
+    }
+    return NextResponse.json(
+      { campaign: campaignFromRow(data as CampaignRow) },
+      { status: 201 },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 500 });

@@ -1,61 +1,74 @@
 import { AppShell } from '@/components/layout/AppShell';
 import { Header } from '@/components/layout/Header';
 import { GuestProfile } from '@/components/guests/GuestProfile';
+import { EmptyState } from '@/components/ui/EmptyState';
 import Link from 'next/link';
-import { MOCK_GUESTS } from '@/lib/mock';
+import { resolveApiBase } from '@/lib/api';
+import type { Segment } from '@/lib/types';
 
-const FALLBACK_VISITS = [
-  {
-    id: 'v1',
-    date: '2026-03-28T21:30:00Z',
-    party_size: 4,
-    amount: 182_000,
-    sector: 'terraza',
-    shift: 'dinner',
-    outcome: 'completed',
-    score: 4.8,
-  },
-  {
-    id: 'v2',
-    date: '2026-02-14T22:00:00Z',
-    party_size: 2,
-    amount: 98_000,
-    sector: 'terraza',
-    shift: 'dinner',
-    outcome: 'completed',
-    score: null,
-  },
-  {
-    id: 'v3',
-    date: '2026-01-22T21:00:00Z',
-    party_size: 6,
-    amount: 276_000,
-    sector: 'privado',
-    shift: 'dinner',
-    outcome: 'completed',
-    score: 5.0,
-  },
-  {
-    id: 'v4',
-    date: '2025-12-08T13:30:00Z',
-    party_size: 2,
-    amount: 84_000,
-    sector: 'barra',
-    shift: 'lunch',
-    outcome: 'completed',
-    score: null,
-  },
-  {
-    id: 'v5',
-    date: '2025-11-15T21:45:00Z',
-    party_size: 4,
-    amount: 164_000,
-    sector: 'terraza',
-    shift: 'dinner',
-    outcome: 'completed',
-    score: 4.6,
-  },
-];
+interface ProfileResponse {
+  guest_partner: {
+    profile: {
+      id: string;
+      segment: Segment;
+      total_visits: number;
+      days_since_last: number | null;
+      avg_score: number | null;
+      total_spent: number | string | null;
+      avg_party_size: number | string | null;
+      preferred_sector: string | null;
+      preferred_day_of_week: string | null;
+    };
+    guest: { name: string | null } | null;
+  };
+}
+
+interface VisitsResponse {
+  visits: Array<{
+    id: string;
+    visit_date: string;
+    party_size: number | null;
+    amount: number | string | null;
+    sector: string | null;
+    shift: string | null;
+    outcome: string | null;
+    score: number | string | null;
+  }>;
+}
+
+async function fetchGuest(id: string): Promise<{
+  profile: ProfileResponse['guest_partner']['profile'];
+  name: string;
+  visits: VisitsResponse['visits'];
+} | null> {
+  const base = await resolveApiBase();
+  const headers = { 'cache-control': 'no-store' } as const;
+
+  const [profileRes, visitsRes] = await Promise.all([
+    fetch(`${base}/api/guest-partners/${id}`, { cache: 'no-store', headers }),
+    fetch(`${base}/api/guest-partners/${id}/visits?limit=50`, {
+      cache: 'no-store',
+      headers,
+    }),
+  ]);
+
+  if (profileRes.status === 404) return null;
+  if (!profileRes.ok) {
+    throw new Error(`profile fetch failed: ${profileRes.status}`);
+  }
+  if (!visitsRes.ok) {
+    throw new Error(`visits fetch failed: ${visitsRes.status}`);
+  }
+
+  const profileBody = (await profileRes.json()) as ProfileResponse;
+  const visitsBody = (await visitsRes.json()) as VisitsResponse;
+
+  return {
+    profile: profileBody.guest_partner.profile,
+    name: profileBody.guest_partner.guest?.name ?? '—',
+    visits: visitsBody.visits ?? [],
+  };
+}
 
 export default async function AudienceGuestPage({
   params,
@@ -63,7 +76,13 @@ export default async function AudienceGuestPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const guest = MOCK_GUESTS.find((g) => g.id === id) ?? MOCK_GUESTS[0]!;
+  let data;
+  let error: string | null = null;
+  try {
+    data = await fetchGuest(id);
+  } catch (e) {
+    error = e instanceof Error ? e.message : 'unknown error';
+  }
 
   return (
     <AppShell>
@@ -77,18 +96,38 @@ export default async function AudienceGuestPage({
           ← Back to audience
         </Link>
 
-        <GuestProfile
-          name={guest.name}
-          segment={guest.segment}
-          total_visits={guest.total_visits}
-          days_since_last={guest.days_since_last}
-          avg_score={guest.avg_score}
-          total_spent={guest.total_spent}
-          avg_party_size={3.2}
-          preferred_sector="terraza"
-          preferred_day="jueves"
-          visits={FALLBACK_VISITS}
-        />
+        {!data ? (
+          <EmptyState
+            title={error ? 'Could not load this guest.' : 'Guest not found.'}
+            hint={
+              error ?? 'They may have been removed from the base or the link is stale.'
+            }
+          />
+        ) : (
+          <GuestProfile
+            name={data.name}
+            segment={data.profile.segment}
+            total_visits={data.profile.total_visits ?? 0}
+            days_since_last={data.profile.days_since_last ?? 0}
+            avg_score={
+              data.profile.avg_score == null ? null : Number(data.profile.avg_score)
+            }
+            total_spent={Number(data.profile.total_spent ?? 0)}
+            avg_party_size={Number(data.profile.avg_party_size ?? 0)}
+            preferred_sector={data.profile.preferred_sector ?? '—'}
+            preferred_day={data.profile.preferred_day_of_week ?? '—'}
+            visits={data.visits.map((v) => ({
+              id: v.id,
+              date: v.visit_date,
+              party_size: Number(v.party_size ?? 0),
+              amount: Number(v.amount ?? 0),
+              sector: v.sector ?? '—',
+              shift: v.shift ?? '—',
+              outcome: v.outcome ?? 'completed',
+              score: v.score == null ? null : Number(v.score),
+            }))}
+          />
+        )}
       </section>
     </AppShell>
   );

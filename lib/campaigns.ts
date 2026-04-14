@@ -3,6 +3,7 @@ import type {
   Campaign,
   CampaignMetrics,
   CampaignStatus,
+  Channel,
   TemplateKey,
   WorkflowStep,
 } from './types';
@@ -94,12 +95,47 @@ export function campaignFromTemplate(
   };
 }
 
-export function deriveChannels(workflow: WorkflowStep[]): Array<'whatsapp' | 'email' | 'whatsapp_then_email'> {
-  const seen = new Set<'whatsapp' | 'email' | 'whatsapp_then_email'>();
+export function deriveChannels(workflow: WorkflowStep[]): Channel[] {
+  const seen = new Set<Channel>();
   for (const step of workflow) {
     if (step.kind === 'send_message') seen.add(step.channel);
+    if (step.kind === 'make_call') seen.add('call');
   }
   return Array.from(seen);
+}
+
+/**
+ * Build a one-shot voice campaign draft from a CSV audience.
+ * Pure function — does not hit the database.
+ */
+export function voiceCampaignDraft(
+  restaurantId: string,
+  args: {
+    name: string;
+    scheduleAt: string;
+    members: Array<{ name: string; phone: string }>;
+  },
+): Omit<Campaign, 'id' | 'created_at' | 'updated_at'> {
+  const workflow: WorkflowStep[] = [
+    { id: 'call_guest', kind: 'make_call', next: 'end' },
+    { id: 'end', kind: 'end', outcome: 'completed' },
+  ];
+  return {
+    restaurant_id: restaurantId,
+    template_key: null,
+    type: 'one_shot',
+    name: args.name,
+    description: null,
+    status: 'draft',
+    audience_filter: { members: args.members },
+    trigger: { type: 'schedule', at: args.scheduleAt },
+    workflow,
+    channels: deriveChannels(workflow),
+    metrics: emptyMetrics(),
+    estimated_revenue: null,
+    started_at: null,
+    completed_at: null,
+  };
 }
 
 /**

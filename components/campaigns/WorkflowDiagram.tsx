@@ -20,6 +20,7 @@ const CHANNEL_LABEL: Record<Channel, string> = {
   whatsapp: 'WhatsApp',
   email: 'Email',
   whatsapp_then_email: 'WhatsApp → Email',
+  call: 'Voice',
 };
 
 interface Props {
@@ -109,6 +110,8 @@ function stepLabel(step: WorkflowStep): string {
   switch (step.kind) {
     case 'send_message':
       return stepTitle(step.id);
+    case 'make_call':
+      return 'Call guest';
     case 'wait':
       return `Wait ${formatHours(step.hours)}`;
     case 'branch':
@@ -234,6 +237,25 @@ function WorkflowNode({
     );
   }
 
+  if (step.kind === 'make_call') {
+    return (
+      <div
+        className="border bg-bg px-5 py-4 h-full"
+        style={{ borderColor: border }}
+      >
+        <div className="text-[9px] uppercase tracking-[0.14em] text-fg-subtle mb-1">
+          Voice · Call
+        </div>
+        <div
+          className="font-display text-lg leading-tight text-fg"
+          style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
+        >
+          {stepLabel(step)}
+        </div>
+      </div>
+    );
+  }
+
   if (step.kind === 'wait') {
     return (
       <div
@@ -272,17 +294,21 @@ function WorkflowNode({
   }
 
   // end
-  return (
-    <div
-      className="border-2 bg-bg-sunken px-5 py-4 h-full flex items-center justify-center"
-      style={{ borderColor: border }}
-    >
+  if (step.kind === 'end') {
+    return (
       <div
-        className="font-mono text-[10px] uppercase tracking-[0.14em]"
-        style={{ color: accentHex }}
+        className="border-2 bg-bg-sunken px-5 py-4 h-full flex items-center justify-center"
+        style={{ borderColor: border }}
       >
-        {step.outcome === 'escalated' ? '✕ Routed' : '✓ End'}
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.14em]"
+          style={{ color: accentHex }}
+        >
+          {step.outcome === 'escalated' ? '✕ Routed' : '✓ End'}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 }

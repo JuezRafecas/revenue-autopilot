@@ -97,7 +97,7 @@ export interface SegmentConfig {
 
 // ---------- Channels --------------------------------------------------------
 
-export type Channel = 'whatsapp' | 'email' | 'whatsapp_then_email';
+export type Channel = 'whatsapp' | 'email' | 'whatsapp_then_email' | 'call';
 
 // ---------- Audience filters ------------------------------------------------
 
@@ -124,6 +124,10 @@ export interface AudienceFilter {
   preferred_shift?: string;
   /** Opt-in required on a channel. */
   requires_opt_in?: Channel;
+  /** Inline audience members loaded from a CSV. When present the runner
+   *  uses this list directly and ignores any filters resolved against
+   *  guest_profiles. */
+  members?: Array<{ name: string; phone: string }>;
 }
 
 // ---------- Events / triggers -----------------------------------------------
@@ -168,7 +172,7 @@ export interface EventRecord {
 
 // ---------- Workflow steps --------------------------------------------------
 
-export type WorkflowStepKind = 'send_message' | 'wait' | 'branch' | 'end';
+export type WorkflowStepKind = 'send_message' | 'make_call' | 'wait' | 'branch' | 'end';
 
 export type BranchConditionKind =
   | 'message_response'
@@ -186,6 +190,14 @@ export interface SendMessageStep {
     retry_channel?: Channel;
     max_retries: number;
   };
+  next?: string;
+}
+
+export interface MakeCallStep {
+  id: string;
+  kind: 'make_call';
+  /** Optional script hint for the (future) voice provider. */
+  script?: string;
   next?: string;
 }
 
@@ -213,7 +225,7 @@ export interface EndStep {
   outcome: 'completed' | 'escalated';
 }
 
-export type WorkflowStep = SendMessageStep | WaitStep | BranchStep | EndStep;
+export type WorkflowStep = SendMessageStep | MakeCallStep | WaitStep | BranchStep | EndStep;
 
 // ---------- Templates -------------------------------------------------------
 

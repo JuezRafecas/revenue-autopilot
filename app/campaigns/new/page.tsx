@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Label } from '@/components/ui/Label';
 import { WorkflowDiagram } from '@/components/campaigns/WorkflowDiagram';
 import { AudienceSummary } from '@/components/campaigns/AudienceSummary';
+import { VoiceCampaignWizard } from '@/components/campaigns/VoiceCampaignWizard';
 import { TEMPLATES, TEMPLATE_ORDER } from '@/lib/templates';
 import type { TemplateKey } from '@/lib/types';
 
@@ -13,10 +14,21 @@ export default async function NewCampaignPage({
   searchParams: Promise<{ template?: string }>;
 }) {
   const { template: templateParam } = await searchParams;
-  const templateKey =
-    templateParam && TEMPLATE_ORDER.includes(templateParam as TemplateKey)
-      ? (templateParam as TemplateKey)
-      : 'reactivate_inactive';
+
+  // No template param → render the new voice-campaign wizard.
+  if (!templateParam) {
+    return (
+      <AppShell>
+        <Header />
+        <VoiceCampaignWizard />
+      </AppShell>
+    );
+  }
+
+  // Legacy template preview (still linked from /templates with the SOON badge).
+  const templateKey = TEMPLATE_ORDER.includes(templateParam as TemplateKey)
+    ? (templateParam as TemplateKey)
+    : 'reactivate_inactive';
 
   const tpl = TEMPLATES[templateKey];
 

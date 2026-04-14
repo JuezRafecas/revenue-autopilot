@@ -18,6 +18,10 @@ import type {
  *     3. http://localhost:3000 como último fallback.
  */
 
+export async function resolveApiBase(): Promise<string> {
+  return resolveBase();
+}
+
 async function resolveBase(): Promise<string> {
   if (typeof window !== 'undefined') return '';
   const env = process.env.NEXT_PUBLIC_API_BASE_URL;
