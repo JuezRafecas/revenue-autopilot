@@ -19,11 +19,11 @@ export interface ProblemStat {
 
 export const PROBLEM_STATS: ProblemStat[] = [
   {
-    value: '50',
-    valueNumeric: 50,
+    value: '70',
+    valueNumeric: 70,
     suffix: '%',
-    label: 'No vuelve después de la primera visita',
-    sub: 'El punto de fuga más caro del negocio',
+    label: 'De los comensales nunca se fideliza con tu marca',
+    sub: 'La fuga entra en el 70-95% según el formato',
   },
   {
     value: '45',
@@ -253,6 +253,14 @@ export const CHANNEL_STATS: ChannelStat[] = [
     conversion: '45–60%',
     conversionNumeric: 52,
     note: 'Canal nativo de LATAM',
+  },
+  {
+    channel: 'Voice',
+    openRate: '60–75%',
+    openRateNumeric: 68,
+    conversion: '55–70%',
+    conversionNumeric: 62,
+    note: 'Reactivación VIP · trato humano',
   },
 ];
 
