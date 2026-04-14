@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0B0A09;
+  --bg-raised: #141210;
+  --bg-sunken: #080706;
+  --bg-elevated: #1C1A17;
+  --fg: #F5F2EC;
+  --fg-muted: #A8A29A;
+  --fg-subtle: #5C5852;
+  --fg-faint: #3A3733;
+  --hairline: #262320;
+  --hairline-strong: #33302C;
+  --accent: #E8B769;
+  --accent-dim: #B88A4A;
+
+  --segment-vip: #E8B769;
+  --segment-active: #8FAE8B;
+  --segment-new: #7FA2C7;
+  --segment-at_risk: #D4A574;
+  --segment-dormant: #C86A52;
+  --segment-lead: #9E8FB8;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-color: var(--hairline);
+  }
+
+  html {
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern', 'liga', 'calt';
+  }
+
+  body {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay — paper texture at midnight */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--bg);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+  }
+
+  /* Tabular numerals for mono, always */
+  code, pre, .font-mono {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum', 'zero';
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .ledger-grid {
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+    background-size: 14px 14px;
+    background-position: -1px -1px;
+    opacity: 0.35;
+  }
+
+  .editorial-container {
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 4vw, 4rem);
+  }
+
+  .hairline-top {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .hairline-bottom {
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .hairline-right {
+    border-right: 1px solid var(--hairline);
+  }
+
+  .hairline-left {
+    border-left: 1px solid var(--hairline);
+  }
+
+  /* The tiny editorial label — used above every heading and number */
+  .label {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-subtle);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "revenue-journal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "generate-csv": "tsx scripts/generate-csv.ts",
+    "seed": "tsx scripts/seed.ts",
+    "reset": "tsx scripts/reset.ts"
+  },
+  "dependencies": {
+    "next": "^15.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "papaparse": "^5.4.1",
+    "recharts": "^2.12.7",
+    "framer-motion": "^11.11.17",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/node": "^22.9.0",
+    "@types/papaparse": "^5.3.15",
+    "tailwindcss": "^3.4.14",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tsx": "^4.19.2",
+    "dotenv": "^16.4.5"
+  }
+}
