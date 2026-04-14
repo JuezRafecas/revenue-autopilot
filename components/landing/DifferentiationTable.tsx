@@ -21,7 +21,7 @@ export function DifferentiationSection() {
             className="inline-block h-2 w-2"
             style={{ background: '#d6cfbc', boxShadow: '0 0 0 1.5px #151411' }}
           />
-          Lo que ofrecen todos
+          What everyone offers
         </div>
         <div className="k-mono text-[9.5px] uppercase tracking-[0.16em] text-[#0e5e48] pb-4 flex items-center gap-2">
           <span
@@ -29,7 +29,7 @@ export function DifferentiationSection() {
             className="inline-block h-2 w-2"
             style={{ background: '#0e5e48', boxShadow: '0 0 0 1.5px #151411' }}
           />
-          Revenue Autopilot
+          Nomi - Guest Autopilot
         </div>
 
         {DIFFERENTIATION.map((row, i) => (

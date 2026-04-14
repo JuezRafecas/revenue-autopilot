@@ -118,7 +118,7 @@ export function BauhausArt() {
           border: '2px solid #151411',
         }}
       >
-        Revenue Autopilot · Entry 01
+        Nomi - Guest Autopilot · Entry 01
       </div>
     </div>
   );

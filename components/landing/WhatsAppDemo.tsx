@@ -11,9 +11,9 @@ const JSON_FIELDS: Array<{ key: string; value: string }> = [
   { key: 'total_visits', value: '7' },
   { key: 'days_since_last_visit', value: '58' },
   { key: 'avg_days_between_visits', value: '18' },
-  { key: 'preferred_day', value: '"jueves"' },
-  { key: 'preferred_shift', value: '"noche"' },
-  { key: 'preferred_sector', value: '"barra"' },
+  { key: 'preferred_day', value: '"thursday"' },
+  { key: 'preferred_shift', value: '"evening"' },
+  { key: 'preferred_sector', value: '"bar"' },
   { key: 'last_score', value: '4.5' },
   { key: 'lifecycle_state', value: '"dormant"' },
 ];
@@ -98,7 +98,7 @@ export function WhatsAppSection() {
         {/* LEFT — JSON context */}
         <div data-reveal="true" data-reveal-delay="2">
           <div className="k-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8782] mb-4">
-            01 · Contexto del cliente
+            01 · Guest context
           </div>
           <div
             className="k-card-brutal p-7"
@@ -143,7 +143,7 @@ export function WhatsAppSection() {
               />
             </svg>
             <span className="k-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8782]">
-              02 · Nomi personaliza
+              02 · Nomi personalizes
             </span>
           </div>
         </div>
@@ -169,7 +169,7 @@ export function WhatsAppSection() {
                   La Cabrera
                 </div>
                 <div className="text-[10px] text-[#0e5e48] leading-tight">
-                  en línea
+                  online
                 </div>
               </div>
             </div>
@@ -195,18 +195,18 @@ export function WhatsAppSection() {
               <div className="self-end flex items-center gap-1.5 mt-1 k-mono text-[10px] uppercase tracking-[0.12em] text-[#8a8782]">
                 {delivered ? (
                   <>
-                    <span>enviado</span>
+                    <span>sent</span>
                     <span style={{ color: '#0e5e48' }}>✓✓</span>
                   </>
                 ) : (
-                  <span className="italic">escribiendo…</span>
+                  <span className="italic">typing…</span>
                 )}
               </div>
             </div>
 
             {/* input bar */}
             <div className="mt-4 mx-3 h-10 border-2 border-[#151411] bg-[#faf8f4] flex items-center px-3 k-mono text-[10px] uppercase tracking-[0.14em] text-[#8a8782]">
-              Reserva ahora ›
+              Book now ›
             </div>
           </div>
         </div>

@@ -74,7 +74,7 @@ export default async function AudienceGuestPage({
           href="/audience"
           className="inline-block font-mono text-[10px] uppercase tracking-label text-fg-subtle hover:text-fg mb-16"
         >
-          ← Volver a la audiencia
+          ← Back to audience
         </Link>
 
         <GuestProfile

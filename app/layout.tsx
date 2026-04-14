@@ -44,24 +44,24 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
   ),
-  title: 'Revenue Autopilot · Push to Prod Hackathon 2026',
+  title: 'Nomi - Guest Autopilot · Push to Prod Hackathon 2026',
   description:
-    'Diagnóstico y recuperación de revenue para restaurantes. Presentado en el Kaszek × Anthropic Push to Prod Hackathon — Buenos Aires, 14 de Abril 2026.',
+    'Revenue diagnosis and recovery for restaurants. Presented at the Kaszek × Anthropic Push to Prod Hackathon — Buenos Aires, April 14, 2026.',
   icons: {
     icon: '/favicon.ico',
   },
   openGraph: {
-    title: 'Revenue Autopilot · Push to Prod Hackathon',
+    title: 'Nomi - Guest Autopilot · Push to Prod Hackathon',
     description:
-      'Diagnóstico autónomo de revenue para restaurantes — Kaszek × Anthropic Hackathon 2026.',
+      'Autonomous revenue diagnosis for restaurants — Kaszek × Anthropic Hackathon 2026.',
     images: ['/brand/push-to-prod-og.png'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Revenue Autopilot · Push to Prod Hackathon',
+    title: 'Nomi - Guest Autopilot · Push to Prod Hackathon',
     description:
-      'Diagnóstico autónomo de revenue para restaurantes — Kaszek × Anthropic Hackathon 2026.',
+      'Autonomous revenue diagnosis for restaurants — Kaszek × Anthropic Hackathon 2026.',
     images: ['/brand/push-to-prod-og.png'],
   },
 };
@@ -73,7 +73,7 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="es"
+      lang="en"
       className={`${fraunces.variable} ${instrumentSans.variable} ${jetbrainsMono.variable} ${bricolage.variable} ${inter.variable}`}
     >
       <body suppressHydrationWarning>{children}</body>

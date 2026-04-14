@@ -33,18 +33,18 @@ export function BulkActionPanel({
 
   return (
     <aside className="border border-hairline bg-bg-raised p-10 sticky top-10">
-      <Label className="mb-3">Acción Masiva</Label>
+      <Label className="mb-3">Bulk Action</Label>
       <h2
         className="font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.05] text-fg max-w-[18ch]"
         style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
       >
-        Accionar sobre{' '}
+        Act on{' '}
         <span className="font-mono text-accent not-italic tabular-nums">{guestCount}</span>{' '}
         <span className="italic">{segmentLabel.toLowerCase()}</span>
       </h2>
 
       <div className="mt-8 pt-6 border-t border-hairline">
-        <Label className="mb-2">Revenue estimado</Label>
+        <Label className="mb-2">Estimated revenue</Label>
         <div className="font-mono text-4xl text-accent">
           <Numeral value={estimatedRevenue} format="ars" animated />
         </div>
@@ -52,12 +52,12 @@ export function BulkActionPanel({
           className="mt-4 font-display italic text-sm text-fg-muted max-w-[32ch]"
           style={{ fontVariationSettings: '"opsz" 14' }}
         >
-          basado en una tasa de conversión histórica y el ticket promedio de la casa.
+          based on a historical conversion rate and the house's average ticket.
         </p>
       </div>
 
       <div className="mt-10">
-        <Label className="mb-4">Previews generados</Label>
+        <Label className="mb-4">Generated previews</Label>
         <div className="space-y-3">
           {previews.slice(0, 2).map((p, i) => (
             <div key={i} className="border border-hairline p-4 bg-bg">
@@ -76,17 +76,17 @@ export function BulkActionPanel({
       <div className="mt-10">
         {status === 'idle' && (
           <Button variant="primary" size="lg" className="w-full" onClick={handleSend}>
-            Aprobar · enviar los {guestCount}
+            Approve · send all {guestCount}
           </Button>
         )}
         {status === 'sending' && (
           <Button variant="primary" size="lg" className="w-full" disabled>
-            Enviando…
+            Sending…
           </Button>
         )}
         {status === 'sent' && (
           <div className="text-center font-mono text-[11px] uppercase tracking-label text-segment-active py-4 border border-segment-active/30">
-            ✓ {guestCount} mensajes en camino
+            ✓ {guestCount} messages on the way
           </div>
         )}
       </div>

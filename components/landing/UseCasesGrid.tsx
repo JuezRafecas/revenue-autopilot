@@ -44,7 +44,7 @@ export function UseCasesSection() {
                 </div>
                 <div>
                   <div className="k-mono text-[9.5px] uppercase tracking-[0.16em] text-[#151411]/60 mb-1">
-                    Acción de Nomi
+                    Nomi&rsquo;s action
                   </div>
                   <div className="text-[12.5px] leading-snug text-[#151411]">
                     {uc.action}
@@ -52,7 +52,7 @@ export function UseCasesSection() {
                 </div>
                 <div>
                   <div className="k-mono text-[9.5px] uppercase tracking-[0.16em] text-[#151411]/60 mb-1">
-                    Métrica
+                    Metric
                   </div>
                   <div className="text-[12.5px] leading-snug text-[#151411] italic">
                     {uc.metric}

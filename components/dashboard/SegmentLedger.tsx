@@ -13,11 +13,11 @@ export function SegmentLedger({ summaries }: { summaries: SegmentSummary[] }) {
         className="grid grid-cols-[minmax(0,1fr)_110px_80px_180px_auto] items-end gap-8 pl-8 pr-6 pt-5 pb-3"
         style={{ borderBottom: '1px solid var(--hairline)' }}
       >
-        <LedgerLabel>Segmento</LedgerLabel>
-        <LedgerLabel align="right">Volumen</LedgerLabel>
-        <LedgerLabel align="right">Tendencia</LedgerLabel>
-        <LedgerLabel align="right">Oportunidad</LedgerLabel>
-        <LedgerLabel align="right">Acción</LedgerLabel>
+        <LedgerLabel>Segment</LedgerLabel>
+        <LedgerLabel align="right">Volume</LedgerLabel>
+        <LedgerLabel align="right">Trend</LedgerLabel>
+        <LedgerLabel align="right">Opportunity</LedgerLabel>
+        <LedgerLabel align="right">Action</LedgerLabel>
       </header>
       <div>
         {ordered.map((summary, i) => (

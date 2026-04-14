@@ -48,23 +48,23 @@ export function MessagesClient({
   );
 
   const filterOptions: FilterOption[] = [
-    { value: 'all', label: 'Todos', count: counts.all },
-    { value: 'pending', label: 'Pendientes', count: counts.pending, dot: 'var(--accent)' },
-    { value: 'sent', label: 'Enviados', count: counts.sent, dot: 'var(--segment-active)' },
-    { value: 'converted', label: 'Convirtieron', count: counts.converted, dot: 'var(--k-green, #0e5e48)' },
+    { value: 'all', label: 'All', count: counts.all },
+    { value: 'pending', label: 'Pending', count: counts.pending, dot: 'var(--accent)' },
+    { value: 'sent', label: 'Sent', count: counts.sent, dot: 'var(--segment-active)' },
+    { value: 'converted', label: 'Converted', count: counts.converted, dot: 'var(--k-green, #0e5e48)' },
   ];
 
   return (
     <AppShell pendingCount={pendingCount ?? counts.pending}>
-      <Header title="Inbox de aprobaciones" subtitle="Mensajes" />
+      <Header title="Approval inbox" subtitle="Messages" />
 
       <section className="editorial-container section-pt-lead section-pb-close">
-        <Label className="mb-3">Mensajes</Label>
+        <Label className="mb-3">Messages</Label>
         <h1
           className="font-display text-[clamp(2rem,5vw,4.5rem)] leading-[0.95] text-fg max-w-[22ch]"
           style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
         >
-          <span className="italic">{counts.pending}</span> esperando tu aprobación.
+          <span className="italic">{counts.pending}</span> awaiting your approval.
         </h1>
       </section>
 
@@ -76,15 +76,15 @@ export function MessagesClient({
             borderBottom: '1.5px solid var(--hairline-strong)',
           }}
         >
-          <Stat label="Pendientes" value={counts.pending} tone={counts.pending > 0 ? 'warning' : undefined} borderRight />
-          <Stat label="Convirtieron hoy" value={counts.converted} borderRight />
-          <Stat label="Revenue hoy" value={revenue} format="ars" accent />
+          <Stat label="Pending" value={counts.pending} tone={counts.pending > 0 ? 'warning' : undefined} borderRight />
+          <Stat label="Converted today" value={counts.converted} borderRight />
+          <Stat label="Revenue today" value={revenue} format="ars" accent />
         </div>
       </section>
 
       <section className="editorial-container pb-5">
         <FilterBar
-          label="Filtrar mensajes"
+          label="Filter messages"
           options={filterOptions}
           value={scope}
           onChange={(v) => setScope(v as Scope)}
@@ -95,11 +95,11 @@ export function MessagesClient({
         <MessageInboxHeader />
         {filtered.length === 0 ? (
           <EmptyState
-            title="Inbox limpio."
+            title="Inbox clear."
             hint={
               scope === 'pending'
-                ? 'Nada esperando aprobación. El sistema va a avisarte cuando haya algo nuevo.'
-                : 'No hay mensajes que coincidan con este filtro.'
+                ? 'Nothing awaiting approval. The system will notify you when something new comes in.'
+                : 'No messages match this filter.'
             }
           />
         ) : (

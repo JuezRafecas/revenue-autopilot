@@ -56,7 +56,7 @@ export function detectOpportunities(
       severity: severityFromShare(dormantShare),
       target_segment: 'dormant',
       suggested_template_key: 'reactivate_inactive',
-      headline: `${audienceSize} comensales se fueron a dormir.`,
+      headline: `${audienceSize} comensales están dormidos.`,
       reasoning: `${sharePct}% de tu base está en segmento dormido. Asumiendo ticket promedio de $${formatMoney(
         avgTicket
       )} y una tasa de reactivación conservadora de ${Math.round(

@@ -7,13 +7,13 @@ interface Props {
 }
 
 /**
- * Tira horizontal always-on para el caso de uso #1 del plan (Post-visita).
- * Presencia mínima: declara que el sistema trabaja solo.
+ * Always-on horizontal strip for use case #1 (Post-visit).
+ * Minimal presence: declares that the system runs on its own.
  */
 export function PostVisitaStrip({ sent, secondVisits, revenue }: Props) {
   return (
     <section
-      aria-label="Post-visita always-on"
+      aria-label="Post-visit always-on"
       className="editorial-container"
     >
       <div
@@ -44,20 +44,20 @@ export function PostVisitaStrip({ sent, secondVisits, revenue }: Props) {
                 fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
               }}
             >
-              Post-visita · Always-on
+              Post-visit · Always-on
             </div>
             <div
               className="k-italic-serif truncate"
               style={{ color: 'var(--fg-muted)', fontSize: 13 }}
             >
-              corriendo sin que tengas que tocar nada.
+              running without you touching a thing.
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4 md:contents">
-          <StripStat label="Enviados" value={sent} />
-          <StripStat label="Segundas visitas" value={secondVisits} />
+          <StripStat label="Sent" value={sent} />
+          <StripStat label="Second visits" value={secondVisits} />
           <StripStat label="Revenue" value={revenue} format="ars" accent />
         </div>
       </div>

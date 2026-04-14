@@ -86,7 +86,7 @@ export function SegmentRow({
               className="text-[9.5px] uppercase mt-0.5"
               style={{ letterSpacing: '0.16em', color: 'var(--fg-subtle)' }}
             >
-              comensales
+              guests
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export function SegmentRow({
               className="text-[9.5px] uppercase mt-0.5"
               style={{ letterSpacing: '0.16em', color: 'var(--fg-subtle)' }}
             >
-              oportunidad
+              opportunity
             </div>
           </div>
 

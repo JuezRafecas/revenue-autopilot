@@ -21,18 +21,18 @@ export function CSVUploader({
 
   return (
     <div className="editorial-container py-32">
-      <Label className="mb-6">Paso 1 · Subir datos</Label>
+      <Label className="mb-6">Step 1 · Upload data</Label>
       <h1
         className="font-display text-[clamp(3rem,6vw,6rem)] leading-[0.95] text-fg mb-4 max-w-[14ch]"
         style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50, "WONK" 1' }}
       >
-        Subí tu base <span className="italic">de clientes</span>.
+        Upload your <span className="italic">customer base</span>.
       </h1>
       <p
         className="font-display italic text-xl text-fg-muted mb-16 max-w-[48ch]"
         style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}
       >
-        un CSV con visitas. lo demás lo hacemos nosotros.
+        a CSV with visits. we handle the rest.
       </p>
 
       <div
@@ -60,16 +60,16 @@ export function CSVUploader({
           onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
         />
         <div className="font-mono text-[11px] uppercase tracking-[0.15em] text-fg-subtle">
-          {fileName ? `✓ ${fileName}` : 'Arrastrá el CSV acá · o hacé click para elegir'}
+          {fileName ? `✓ ${fileName}` : 'Drop your CSV here · or click to choose'}
         </div>
       </div>
 
       <div className="mt-12 flex items-center gap-4">
         <Button variant="primary" disabled={!fileName}>
-          Procesar base
+          Process base
         </Button>
         <span className="font-mono text-[11px] text-fg-subtle uppercase tracking-label">
-          Formato esperado:{' '}
+          Expected format:{' '}
           <span className="text-fg-muted">guest_name, phone, email, visit_date, …</span>
         </span>
       </div>

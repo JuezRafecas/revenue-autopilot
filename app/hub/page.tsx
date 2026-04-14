@@ -28,7 +28,7 @@ async function loadInitialHub(): Promise<InitialHubData> {
       error:
         err instanceof Error
           ? err.message
-          : 'Supabase no está configurado. Agregá las credenciales en .env.local.',
+          : 'Supabase is not configured. Add credentials in .env.local.',
     };
   }
 
@@ -61,7 +61,7 @@ async function loadInitialHub(): Promise<InitialHubData> {
       error:
         err instanceof Error
           ? err.message
-          : 'No se pudo cargar el hub. Verificá la CDP.',
+          : 'Unable to load the hub. Check the CDP.',
     };
   }
 }

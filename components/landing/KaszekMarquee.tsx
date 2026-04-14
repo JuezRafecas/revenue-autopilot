@@ -1,10 +1,10 @@
 const ITEMS = [
-  'Revenue Autopilot',
+  'Nomi - Guest Autopilot',
   'Kaszek × Anthropic',
   'Push to Prod Hackathon',
   '14.04.2026',
   'Buenos Aires',
-  'Diagnóstico Autónomo',
+  'Autonomous Diagnosis',
   'Digital House · Belgrano',
   'Approve · Don\u2019t Configure',
 ];

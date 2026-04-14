@@ -17,25 +17,25 @@ function channelLabel(c: MessageRow['channel']) {
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
-  if (mins < 60) return `hace ${mins} min`;
+  if (mins < 60) return `${mins} min ago`;
   const hours = Math.round(mins / 60);
-  if (hours < 24) return `hace ${hours} h`;
+  if (hours < 24) return `${hours} h ago`;
   const days = Math.round(hours / 24);
-  return `hace ${days} d`;
+  return `${days} d ago`;
 }
 
 /**
- * Chip del "por qué": inferido del nombre de la campaña mientras el backend
- * no hidrate trigger/context en MessageRow. Traduce intención comercial a
- * una línea corta que el dueño puede escanear.
+ * "Why" chip: inferred from the campaign name while the backend
+ * doesn't hydrate trigger/context on MessageRow. Translates commercial
+ * intent into a short line the owner can scan.
  */
 function buildTrigger(campaignName: string): string | null {
   const n = campaignName.toLowerCase();
-  if (n.includes('reactiv') || n.includes('dormid')) return 'Dormido · recuperar';
-  if (n.includes('post') || n.includes('gracias')) return 'Post-visita · reforzar';
-  if (n.includes('segunda') || n.includes('primera')) return '1ra visita · traer la 2da';
-  if (n.includes('evento') || n.includes('experiencia')) return 'Evento · invitar';
-  if (n.includes('mesa') || n.includes('ocupaci')) return 'Mesa vacía · llenar';
+  if (n.includes('reactiv') || n.includes('dormid')) return 'Dormant · recover';
+  if (n.includes('post') || n.includes('gracias')) return 'Post-visit · reinforce';
+  if (n.includes('segunda') || n.includes('primera')) return '1st visit · bring back the 2nd';
+  if (n.includes('evento') || n.includes('experiencia')) return 'Event · invite';
+  if (n.includes('mesa') || n.includes('ocupaci')) return 'Empty table · fill';
   return null;
 }
 
@@ -136,7 +136,7 @@ export function ApprovalCard({ message, onApprove, onPass }: Props) {
           <button
             type="button"
             onClick={() => onApprove(message.id)}
-            aria-label={`Aprobar mensaje para ${message.guest_name}`}
+            aria-label={`Approve message for ${message.guest_name}`}
             className="inline-flex items-center gap-1.5 h-8 px-3 text-[10.5px] uppercase font-[600] transition-opacity hover:opacity-90"
             style={{
               letterSpacing: '0.16em',
@@ -146,12 +146,12 @@ export function ApprovalCard({ message, onApprove, onPass }: Props) {
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Aprobar <span aria-hidden>→</span>
+            Approve <span aria-hidden>→</span>
           </button>
           <button
             type="button"
             onClick={() => onPass(message.id)}
-            aria-label={`Pasar mensaje para ${message.guest_name}`}
+            aria-label={`Pass on message for ${message.guest_name}`}
             className="inline-flex items-center h-8 px-3 text-[10.5px] uppercase font-[600] transition-colors"
             style={{
               letterSpacing: '0.16em',
@@ -161,12 +161,12 @@ export function ApprovalCard({ message, onApprove, onPass }: Props) {
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Pasar
+            Pass
           </button>
         </div>
         <div
           className="text-right"
-          aria-label={`Revenue esperado al aprobar`}
+          aria-label={`Expected revenue on approval`}
         >
           <div
             className="tabular-nums"
@@ -185,7 +185,7 @@ export function ApprovalCard({ message, onApprove, onPass }: Props) {
             className="text-[9px] uppercase mt-0.5"
             style={{ letterSpacing: '0.16em', color: 'var(--fg-subtle)' }}
           >
-            esperado
+            expected
           </div>
         </div>
       </div>

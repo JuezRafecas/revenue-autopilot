@@ -10,33 +10,33 @@ export default function SettingsPage() {
       <Header />
 
       <section className="editorial-container pt-16 pb-24 max-w-[780px]">
-        <Label className="mb-3">Configuración</Label>
+        <Label className="mb-3">Settings</Label>
         <h1
           className="font-display text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.95] text-fg mb-16"
           style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
         >
-          Restaurante
+          Restaurant
         </h1>
 
         <div className="space-y-12">
-          <Field label="Nombre" value={MOCK_RESTAURANT.name} />
+          <Field label="Name" value={MOCK_RESTAURANT.name} />
           <Field label="Slug" value={MOCK_RESTAURANT.slug} mono />
-          <Field label="Ticket promedio" value={`$${MOCK_RESTAURANT.avg_ticket.toLocaleString('es-AR')}`} mono />
-          <Field label="Moneda" value={MOCK_RESTAURANT.currency} mono />
-          <Field label="Zona horaria" value="America/Argentina/Buenos_Aires" mono />
+          <Field label="Average ticket" value={`$${MOCK_RESTAURANT.avg_ticket.toLocaleString('es-AR')}`} mono />
+          <Field label="Currency" value={MOCK_RESTAURANT.currency} mono />
+          <Field label="Time zone" value="America/Argentina/Buenos_Aires" mono />
         </div>
 
         <div className="mt-20 pt-12 border-t border-hairline">
-          <Label className="mb-6">Canales</Label>
+          <Label className="mb-6">Channels</Label>
           <div className="space-y-6">
-            <ChannelRow name="WhatsApp Business" status="Conectado" active />
-            <ChannelRow name="Email transaccional" status="Resend · conectado" active />
+            <ChannelRow name="WhatsApp Business" status="Connected" active />
+            <ChannelRow name="Transactional email" status="Resend · connected" active />
           </div>
         </div>
 
         <div className="mt-16 flex items-center gap-3">
-          <Button variant="primary">Guardar cambios</Button>
-          <Button variant="link">Cancelar</Button>
+          <Button variant="primary">Save changes</Button>
+          <Button variant="link">Cancel</Button>
         </div>
       </section>
     </AppShell>
@@ -74,7 +74,7 @@ function ChannelRow({ name, status, active }: { name: string; status: string; ac
         }`}
       >
         <span className="h-1.5 w-1.5 rounded-full bg-current" />
-        {active ? 'Activo' : 'Inactivo'}
+        {active ? 'Active' : 'Inactive'}
       </div>
     </div>
   );

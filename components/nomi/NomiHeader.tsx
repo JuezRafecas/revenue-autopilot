@@ -21,7 +21,7 @@ export function NomiHeader() {
           color: 'var(--fg)',
         }}
       >
-        Nomi está{' '}
+        Nomi is{' '}
         <span
           className="k-italic-serif"
           style={{
@@ -30,9 +30,9 @@ export function NomiHeader() {
             color: 'var(--accent-dim)',
           }}
         >
-          mirando
+          watching
         </span>{' '}
-        tu restaurante.
+        your restaurant.
       </h1>
       <p
         className="k-italic-serif mt-3"
@@ -43,8 +43,8 @@ export function NomiHeader() {
           maxWidth: 560,
         }}
       >
-        Revisa tu CDP las 24 horas, detecta oportunidades de revenue y te arma
-        el plan completo. Vos aprobás.
+        Scans your CDP 24/7, spots revenue opportunities and drafts the full
+        plan. You approve.
       </p>
     </section>
   );

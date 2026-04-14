@@ -49,7 +49,7 @@ export function RevenueMockupSection() {
             {formatARS(REVENUE_MOCKUP.total)}
           </div>
           <div className="k-label text-[#0e5e48] mb-10">
-            Ingresos incrementales que no existirían sin el sistema
+            Incremental revenue that wouldn&rsquo;t exist without the system
           </div>
 
           <div className="flex flex-col gap-8 pt-8 border-t border-[#e4dfd2]">
@@ -80,8 +80,8 @@ export function RevenueMockupSection() {
                       />
                     </div>
                     <div className="k-mono text-[11px] uppercase tracking-[0.12em] text-[#8a8782]">
-                      {formatNumber(line.sent)} mensajes ·{' '}
-                      {formatNumber(line.converted)} convertidos
+                      {formatNumber(line.sent)} messages ·{' '}
+                      {formatNumber(line.converted)} converted
                     </div>
                   </div>
                   <div
@@ -102,10 +102,10 @@ export function RevenueMockupSection() {
 
           <div className="mt-10 pt-6 border-t border-[#e4dfd2] flex items-center justify-between gap-4">
             <span className="k-mono text-[10px] uppercase tracking-[0.16em] text-[#8a8782]">
-              Atribuido · Nomi decision engine
+              Attributed · Nomi decision engine
             </span>
             <span className="k-mono text-[10px] uppercase tracking-[0.16em] text-[#0e5e48]">
-              Revenue &gt; actividad
+              Revenue &gt; activity
             </span>
           </div>
         </div>

@@ -52,7 +52,7 @@ export function CampaignsClient({
 
   const filterOptions: FilterOption[] = useMemo(() => {
     const base: FilterOption[] = [
-      { value: 'all', label: 'Todas', count: counts.all },
+      { value: 'all', label: 'All', count: counts.all },
     ];
     for (const s of CAMPAIGN_STATUS_ORDER) {
       if (!counts[s]) continue;
@@ -63,32 +63,32 @@ export function CampaignsClient({
 
   return (
     <AppShell pendingCount={pendingCount}>
-      <Header title="Todas las campañas" subtitle="Campañas" />
+      <Header title="All campaigns" subtitle="Campaigns" />
 
       <section className="editorial-container section-pt-lead section-pb-close">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 md:gap-10 mb-8">
           <div>
-            <Label className="mb-3">Campañas</Label>
+            <Label className="mb-3">Campaigns</Label>
             <h1
               className="font-display text-[clamp(2rem,5vw,4.5rem)] leading-[0.95] text-fg max-w-[22ch]"
               style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
             >
-              <span className="italic">{activeCount} campañas activas</span>
+              <span className="italic">{activeCount} active campaign{activeCount === 1 ? '' : 's'}</span>
               {scheduledCount > 0 && (
-                <span className="text-fg-muted">, {scheduledCount} programada{scheduledCount > 1 ? 's' : ''}.</span>
+                <span className="text-fg-muted">, {scheduledCount} scheduled.</span>
               )}
             </h1>
           </div>
           <div className="shrink-0 md:pt-4">
             <Link href="/templates">
-              <Button variant="primary">Nueva campaña</Button>
+              <Button variant="primary">New campaign</Button>
             </Link>
           </div>
         </div>
 
         <div className="border-t border-hairline pt-3">
           <FilterBar
-            label="Filtrar campañas por estado"
+            label="Filter campaigns by status"
             options={filterOptions}
             value={statusFilter}
             onChange={(v) => setStatusFilter(v as StatusFilter)}
@@ -99,27 +99,27 @@ export function CampaignsClient({
       <section className="editorial-container pb-24">
         <div className="border-t border-hairline">
           <header className="hidden lg:grid grid-cols-[minmax(0,1.8fr)_100px_90px_100px_140px_auto] items-end gap-6 pl-8 pr-6 pt-4 pb-3">
-            <Label>Campaña</Label>
-            <Label className="text-right">Enviados</Label>
-            <Label className="text-right">Respuesta</Label>
-            <Label className="text-right">Conversión</Label>
+            <Label>Campaign</Label>
+            <Label className="text-right">Sent</Label>
+            <Label className="text-right">Response</Label>
+            <Label className="text-right">Conversion</Label>
             <Label className="text-right">Revenue</Label>
-            <Label className="text-right">Acción</Label>
+            <Label className="text-right">Action</Label>
           </header>
           <div className="border-t border-hairline">
             {filtered.length === 0 ? (
               <EmptyState
                 title={
                   statusFilter === 'all'
-                    ? 'Sin campañas todavía.'
-                    : `Nada ${CAMPAIGN_STATUS_LABEL[statusFilter as CampaignStatus].toLowerCase()}.`
+                    ? 'No campaigns yet.'
+                    : `Nothing ${CAMPAIGN_STATUS_LABEL[statusFilter as CampaignStatus].toLowerCase()}.`
                 }
                 hint={
                   statusFilter === 'all'
-                    ? 'Elegí una plantilla para empezar. Vos aprobás, nosotros ejecutamos.'
-                    : 'Probá otro estado, o creá una desde cero con una plantilla.'
+                    ? 'Pick a template to get started. You approve, we execute.'
+                    : 'Try another status, or build one from scratch with a template.'
                 }
-                cta={{ label: 'Ver plantillas', href: '/templates' }}
+                cta={{ label: 'View templates', href: '/templates' }}
               />
             ) : (
               filtered.map((c, i) => <CampaignRow key={c.id} campaign={c} index={i} />)

@@ -11,9 +11,9 @@ interface OpportunityCardProps {
 }
 
 const SEVERITY_LABEL: Record<Opportunity['severity'], string> = {
-  high: 'Prioritaria',
-  medium: 'Moderada',
-  low: 'Contexto',
+  high: 'Priority',
+  medium: 'Moderate',
+  low: 'Context',
 };
 
 export function OpportunityCard({
@@ -26,12 +26,12 @@ export function OpportunityCard({
 
   const handleApprove = () => {
     seedChat(
-      `Quiero activar la oportunidad "${opportunity.headline}" con el template ${opportunity.suggested_template_key}. Armame el borrador y explicame por qué.`
+      `Let's activate the "${opportunity.headline}" opportunity using template ${opportunity.suggested_template_key}. Draft it and tell me why.`
     );
   };
 
   const segmentVar = `var(--segment-${opportunity.target_segment})`;
-  const money = new Intl.NumberFormat('es-AR', {
+  const money = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 0,
     notation: opportunity.revenue_potential > 99999 ? 'compact' : 'standard',
   }).format(opportunity.revenue_potential);
@@ -107,7 +107,7 @@ export function OpportunityCard({
               className="k-label"
               style={{ color: 'var(--fg-subtle)', fontSize: 8.5 }}
             >
-              Potencial
+              Potential
             </div>
             <div
               className="k-mono"
@@ -137,7 +137,7 @@ export function OpportunityCard({
                 marginTop: 2,
               }}
             >
-              {opportunity.audience_size.toLocaleString('es-AR')} clientes
+              {opportunity.audience_size.toLocaleString('en-US')} guests
             </div>
           </div>
         </div>
@@ -147,7 +147,7 @@ export function OpportunityCard({
         className="k-mono absolute bottom-4 right-5 text-[9px] uppercase transition-opacity opacity-0 group-hover:opacity-100"
         style={{ letterSpacing: '0.14em', color: 'var(--accent-dim)' }}
       >
-        aprobar →
+        approve →
       </div>
     </button>
   );

@@ -41,7 +41,7 @@ export function ClaudePhasesSection() {
         <div className="relative">
           <div className="lg:sticky lg:top-[18vh]">
             <div className="k-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8782] mb-4">
-              Pipeline de decisión
+              Decision pipeline
             </div>
             <div
               className="k-display mb-6"
@@ -53,11 +53,11 @@ export function ClaudePhasesSection() {
                 WebkitTextStroke: '2px #151411',
               }}
             >
-              4 fases
+              4 phases
             </div>
             <p className="k-body max-w-[38ch] mb-8">
-              Nomi responde una sola pregunta en loop: qué oportunidad de
-              ingreso existe hoy y qué acción concreta debe ejecutarse.
+              Nomi answers a single question in a loop: what revenue
+              opportunity exists today and what concrete action should run.
             </p>
 
             {/* Progress bar */}
@@ -68,7 +68,7 @@ export function ClaudePhasesSection() {
               />
             </div>
             <div className="mt-2 k-mono text-[9.5px] uppercase tracking-[0.16em] text-[#8a8782]">
-              Scroll para avanzar
+              Scroll to advance
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@ function PhaseCard({
 
       <div className="pt-4 border-t border-[#e4dfd2]">
         <div className="k-mono text-[9.5px] uppercase tracking-[0.16em] text-[#8a8782] mb-1.5">
-          Ejemplos
+          Examples
         </div>
         <p className="text-[13px] leading-snug text-[#605e5a] italic max-w-[58ch]">
           {phase.detail}

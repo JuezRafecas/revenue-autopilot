@@ -4,16 +4,16 @@ import { Label } from '@/components/ui/Label';
 import { formatARS } from '@/lib/constants';
 
 const STATUS_LABEL: Record<MessageStatus, string> = {
-  pending_approval: 'Esperando aprobación',
-  approved: 'Aprobado',
-  queued: 'En cola',
-  sent: 'Enviado',
-  delivered: 'Entregado',
-  read: 'Leído',
-  responded: 'Respondido',
-  converted: 'Convirtió',
-  failed: 'Falló',
-  skipped: 'Omitido',
+  pending_approval: 'Awaiting approval',
+  approved: 'Approved',
+  queued: 'Queued',
+  sent: 'Sent',
+  delivered: 'Delivered',
+  read: 'Read',
+  responded: 'Responded',
+  converted: 'Converted',
+  failed: 'Failed',
+  skipped: 'Skipped',
 };
 
 /* AA-compliant tokens: each status pairs a dot color with a readable text color on cream. */
@@ -54,7 +54,7 @@ export function MessageInboxRow({
   createdAt,
   revenue,
 }: Props) {
-  const when = new Date(createdAt).toLocaleString('es-AR', {
+  const when = new Date(createdAt).toLocaleString('en-US', {
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
@@ -123,7 +123,7 @@ export function MessageInboxRow({
               className="font-mono text-[10.5px] uppercase"
               style={{ letterSpacing: '0.14em', color: 'var(--accent-dim)', fontWeight: 600 }}
             >
-              Aprobar
+              Approve
             </span>
             <span aria-hidden style={{ color: 'var(--accent-dim)' }}>→</span>
           </div>
@@ -140,7 +140,7 @@ export function MessageInboxRow({
           <div className="hidden md:flex absolute inset-0 items-center justify-end gap-1.5 opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity">
             <button
               type="button"
-              aria-label={`Rechazar mensaje para ${guestName}`}
+              aria-label={`Skip message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600] transition-colors"
               style={{
                 letterSpacing: '0.14em',
@@ -150,11 +150,11 @@ export function MessageInboxRow({
                 fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
               }}
             >
-              Pasar
+              Skip
             </button>
             <button
               type="button"
-              aria-label={`Aprobar mensaje para ${guestName}`}
+              aria-label={`Approve message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600] transition-colors hover:opacity-90"
               style={{
                 letterSpacing: '0.14em',
@@ -164,7 +164,7 @@ export function MessageInboxRow({
                 fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
               }}
             >
-              Aprobar →
+              Approve →
             </button>
           </div>
         )}
@@ -188,7 +188,7 @@ export function MessageInboxRow({
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              aria-label={`Rechazar mensaje para ${guestName}`}
+              aria-label={`Skip message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600]"
               style={{
                 letterSpacing: '0.14em',
@@ -197,11 +197,11 @@ export function MessageInboxRow({
                 background: 'var(--bg-raised)',
               }}
             >
-              Pasar
+              Skip
             </button>
             <button
               type="button"
-              aria-label={`Aprobar mensaje para ${guestName}`}
+              aria-label={`Approve message for ${guestName}`}
               className="h-7 px-2.5 text-[10px] uppercase font-[600]"
               style={{
                 letterSpacing: '0.14em',
@@ -210,7 +210,7 @@ export function MessageInboxRow({
                 background: 'var(--fg)',
               }}
             >
-              Aprobar →
+              Approve →
             </button>
           </div>
         ) : revenue != null && revenue > 0 ? (
@@ -228,11 +228,11 @@ export function MessageInboxRow({
 export function MessageInboxHeader() {
   return (
     <div className="hidden md:grid grid-cols-[minmax(0,1.5fr)_minmax(0,2.2fr)_120px_130px_140px] gap-4 pl-6 pr-6 py-3 border-y border-hairline">
-      <Label>Comensal</Label>
+      <Label>Guest</Label>
       <Label>Preview</Label>
-      <Label>Canal</Label>
-      <Label>Estado</Label>
-      <Label className="text-right">Acción · Revenue</Label>
+      <Label>Channel</Label>
+      <Label>Status</Label>
+      <Label className="text-right">Action · Revenue</Label>
     </div>
   );
 }

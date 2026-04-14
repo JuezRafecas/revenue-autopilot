@@ -28,36 +28,36 @@ export function TemplatesClient({ pendingCount }: { pendingCount?: number }) {
   );
 
   const filterOptions: FilterOption[] = [
-    { value: 'all', label: 'Todas', count: counts.all },
-    { value: 'automation', label: 'Automaciones', count: counts.automation },
-    { value: 'one_shot', label: 'Puntuales', count: counts.one_shot },
+    { value: 'all', label: 'All', count: counts.all },
+    { value: 'automation', label: 'Automations', count: counts.automation },
+    { value: 'one_shot', label: 'One-shot', count: counts.one_shot },
   ];
 
   return (
     <AppShell pendingCount={pendingCount}>
-      <Header title="Plantillas" subtitle="Recetas aprobadas" live={false} />
+      <Header title="Templates" subtitle="Approved recipes" live={false} />
 
       <section className="editorial-container section-pt-lead section-pb-close">
-        <Label className="mb-3">Plantillas de campaña</Label>
+        <Label className="mb-3">Campaign templates</Label>
         <h1
           className="font-display text-[clamp(2rem,5vw,4.5rem)] leading-[0.95] text-fg max-w-[22ch]"
           style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
         >
-          Cinco recetas. <span className="italic">Cero configuración.</span>
+          Five recipes. <span className="italic">Zero configuration.</span>
         </h1>
         <p
           className="mt-4 font-display italic text-xl text-fg-muted max-w-[56ch] leading-snug"
           style={{ fontVariationSettings: '"opsz" 144, "SOFT" 100' }}
         >
-          cada plantilla incluye audiencia, disparador, flujo de mensajes y los KPIs que optimiza.
-          vos aprobás, nosotros ejecutamos.
+          every template includes audience, trigger, message flow, and the KPIs it optimizes.
+          you approve, we execute.
         </p>
       </section>
 
       <section className="editorial-container pb-5">
         <div className="border-t border-hairline pt-3">
           <FilterBar
-            label="Filtrar plantillas por tipo"
+            label="Filter templates by type"
             options={filterOptions}
             value={scope}
             onChange={(v) => setScope(v as Scope)}
@@ -69,8 +69,8 @@ export function TemplatesClient({ pendingCount }: { pendingCount?: number }) {
         {filtered.length === 0 ? (
           <div className="border-t border-hairline">
             <EmptyState
-              title="Nada en este tipo."
-              hint="Probá con otro filtro. Las cinco recetas cubren los momentos clave del ciclo de vida."
+              title="Nothing in this type."
+              hint="Try another filter. The five recipes cover the key moments of the lifecycle."
             />
           </div>
         ) : (

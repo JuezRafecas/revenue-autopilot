@@ -47,7 +47,7 @@ export function KPIGrid({ kpis }: { kpis: KPI[] }) {
                     width={96}
                     height={16}
                     color={isAnchor ? 'var(--accent)' : 'var(--k-green, #0e5e48)'}
-                    ariaLabel={`Evolución de ${k.label} en los últimos 30 días`}
+                    ariaLabel={`${k.label} trend over the last 30 days`}
                   />
                 )}
                 {k.delta != null && k.delta !== 0 && <DeltaChip delta={k.delta} />}
@@ -132,7 +132,7 @@ function DeltaChip({ delta }: { delta: number }) {
         background: 'var(--bg-raised)',
         color: positive ? 'var(--k-green, #0e5e48)' : 'var(--accent-dim)',
       }}
-      aria-label={`${positive ? 'Subió' : 'Bajó'} ${Math.abs(delta).toFixed(1)} por ciento contra la semana pasada`}
+      aria-label={`${positive ? 'Up' : 'Down'} ${Math.abs(delta).toFixed(1)} percent versus last week`}
     >
       <span aria-hidden>{positive ? '↗' : '↘'}</span> {Math.abs(delta).toFixed(1)}%
       <span className="ml-1 opacity-60" aria-hidden>vs 7d</span>

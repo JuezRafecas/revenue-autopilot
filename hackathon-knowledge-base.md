@@ -577,7 +577,7 @@ Paramos y corregimos si:
 ```json
 {
   "guest_name": "Juan Pérez",
-  "restaurant_name": "Fabric Sushi",
+  "restaurant_name": "La Cabrera",
   "total_visits": 7,
   "last_visit_date": "2026-02-15",
   "days_since_last_visit": 58,

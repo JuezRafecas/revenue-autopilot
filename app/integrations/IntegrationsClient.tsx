@@ -20,8 +20,8 @@ type Category = {
 const CATEGORIES: Category[] = [
   {
     id: 'pos',
-    title: 'POS Regionales',
-    blurb: 'Sincronización de ticket, consumo y mesas',
+    title: 'Regional POS',
+    blurb: 'Ticket, check, and table sync',
     items: [
       { id: 'soft-restaurant', name: 'Soft Restaurant', icon: <Monogram text="SR" bg="#b54727" /> },
       { id: 'fudo', name: 'Fudo', icon: <Monogram text="F" bg="#ef6c2a" /> },
@@ -31,8 +31,8 @@ const CATEGORIES: Category[] = [
   },
   {
     id: 'payments',
-    title: 'Pagos',
-    blurb: 'Atribución de conversiones y cobros digitales',
+    title: 'Payments',
+    blurb: 'Conversion attribution and digital payments',
     items: [
       { id: 'mercado-pago', name: 'Mercado Pago', icon: <Monogram text="MP" bg="#0aa7ea" /> },
       { id: 'pix', name: 'Pix', icon: <DiamondMark color="#1aa59a" /> },
@@ -42,8 +42,8 @@ const CATEGORIES: Category[] = [
   },
   {
     id: 'reservas',
-    title: 'Reservas',
-    blurb: 'Captura de huésped, mesa y franja horaria',
+    title: 'Reservations',
+    blurb: 'Guest, table, and time slot capture',
     items: [
       { id: 'woki', name: 'Woki', icon: <Monogram text="Wk" bg="#66c242" /> },
       { id: 'opentable', name: 'OpenTable', icon: <Monogram text="OT" bg="#c8203b" /> },
@@ -53,7 +53,7 @@ const CATEGORIES: Category[] = [
   {
     id: 'delivery',
     title: 'Delivery',
-    blurb: 'Pedidos, zonas y ticket fuera del salón',
+    blurb: 'Orders, zones, and off-premise tickets',
     items: [
       { id: 'rappi', name: 'Rappi', icon: <Monogram text="Rp" bg="#ec255a" /> },
       { id: 'ifood', name: 'iFood', icon: <Monogram text="iF" bg="#e1252b" /> },
@@ -62,25 +62,25 @@ const CATEGORIES: Category[] = [
   },
   {
     id: 'comunicacion',
-    title: 'Comunicación',
-    blurb: 'Canal directo al huésped',
+    title: 'Communication',
+    blurb: 'Direct channel to the guest',
     items: [
       { id: 'whatsapp', name: 'WhatsApp Business API', icon: <WhatsAppMark /> },
     ],
   },
   {
     id: 'wifi',
-    title: 'WiFi / Portal Cautivo',
-    blurb: 'Identificación del huésped al conectarse',
+    title: 'WiFi / Captive Portal',
+    blurb: 'Guest identification on connection',
     items: [
       { id: 'google-wifi', name: 'Google WiFi', icon: <WifiMark color="#2a73e0" /> },
-      { id: 'captive-portal', name: 'Captive portal genérico', icon: <WifiMark color="#3a3a3a" /> },
+      { id: 'captive-portal', name: 'Generic captive portal', icon: <WifiMark color="#3a3a3a" /> },
     ],
   },
   {
     id: 'reviews',
     title: 'Reviews & Feedback',
-    blurb: 'Señales de satisfacción y reputación',
+    blurb: 'Satisfaction and reputation signals',
     items: [
       { id: 'google-reviews', name: 'Google Reviews', icon: <StarMark color="#f6a800" /> },
       { id: 'tripadvisor', name: 'TripAdvisor', icon: <Monogram text="Ta" bg="#0e5e48" /> },
@@ -104,20 +104,20 @@ export function IntegrationsClient() {
 
   return (
     <section className="editorial-container pt-16 pb-24">
-      <Label className="mb-3">Integraciones</Label>
+      <Label className="mb-3">Integrations</Label>
       <div className="flex items-end justify-between flex-wrap gap-6 mb-14">
         <h1
           className="font-display text-[clamp(2.25rem,4.6vw,4rem)] leading-[0.95] text-fg max-w-[780px]"
           style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
         >
-          Conectá las fuentes que mueven plata.
+          Connect the sources that move revenue.
         </h1>
         <div className="flex items-center gap-3 shrink-0">
           <span
             className="font-mono text-[10px] uppercase"
             style={{ letterSpacing: '0.14em', color: 'var(--fg-subtle)' }}
           >
-            Conectadas
+            Connected
           </span>
           <span
             className="font-mono text-[11px] px-2 py-1"
@@ -217,7 +217,7 @@ function IntegrationCard({
                 border: on ? 'none' : '1px solid var(--fg-faint)',
               }}
             />
-            {on ? 'Conectada' : 'Desconectada'}
+            {on ? 'Connected' : 'Disconnected'}
           </div>
         </div>
       </div>
@@ -240,7 +240,7 @@ function ToggleSwitch({
       type="button"
       role="switch"
       aria-checked={on}
-      aria-label={`${on ? 'Desactivar' : 'Activar'} ${label}`}
+      aria-label={`${on ? 'Deactivate' : 'Activate'} ${label}`}
       onClick={onToggle}
       className="relative shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-sunken)]"
       style={{

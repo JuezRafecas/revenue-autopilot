@@ -23,10 +23,10 @@ export function GuestList({ rows }: { rows: Row[] }) {
   return (
     <div className="border-t border-hairline">
       <header className={`hidden md:grid ${GRID_COLS} gap-6 pl-6 pr-6 py-3 border-b border-hairline`}>
-        <Label>Comensal</Label>
-        <Label>Segmento</Label>
-        <Label className="text-right">Visitas</Label>
-        <Label className="text-right">Última</Label>
+        <Label>Guest</Label>
+        <Label>Segment</Label>
+        <Label className="text-right">Visits</Label>
+        <Label className="text-right">Last</Label>
         <Label className="text-right">Score</Label>
         <Label className="text-right">Total</Label>
       </header>
@@ -60,9 +60,9 @@ export function GuestList({ rows }: { rows: Row[] }) {
 
             {/* Mobile: compact 3-metric strip */}
             <div className="md:hidden mt-3 grid grid-cols-3 gap-3 text-[11px] font-mono tabular-nums">
-              <MobileMetric label="Visitas" value={row.total_visits} />
+              <MobileMetric label="Visits" value={row.total_visits} />
               <MobileMetric
-                label="Última"
+                label="Last"
                 value={row.days_since_last === 0 ? '—' : `${row.days_since_last}d`}
                 muted
               />

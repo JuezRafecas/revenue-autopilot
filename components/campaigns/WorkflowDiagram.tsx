@@ -110,25 +110,25 @@ function stepLabel(step: WorkflowStep): string {
     case 'send_message':
       return stepTitle(step.id);
     case 'wait':
-      return `Esperar ${formatHours(step.hours)}`;
+      return `Wait ${formatHours(step.hours)}`;
     case 'branch':
-      return '¿Respondió?';
+      return 'Replied?';
     case 'end':
-      return step.outcome === 'escalated' ? 'Derivar a equipo' : 'Fin';
+      return step.outcome === 'escalated' ? 'Route to team' : 'End';
   }
 }
 
 function stepTitle(id: string): string {
   const map: Record<string, string> = {
-    send_thanks: 'Enviar agradecimiento',
-    request_review: 'Pedir review Google',
-    escalate: 'Derivar a equipo',
-    gentle_reminder: 'Recordatorio suave',
-    send_invite: 'Enviar invitación',
-    send_reactivation: 'Enviar reactivación',
-    final_attempt: 'Último intento',
-    send_vip_invite: 'Invitación VIP',
-    send_frequent_invite: 'Invitación Frecuentes',
+    send_thanks: 'Send thank-you',
+    request_review: 'Request Google review',
+    escalate: 'Route to team',
+    gentle_reminder: 'Gentle reminder',
+    send_invite: 'Send invitation',
+    send_reactivation: 'Send reactivation',
+    final_attempt: 'Final attempt',
+    send_vip_invite: 'VIP invitation',
+    send_frequent_invite: 'Frequent guest invitation',
   };
   return map[id] ?? id.replace(/_/g, ' ');
 }
@@ -136,7 +136,7 @@ function stepTitle(id: string): string {
 function formatHours(h: number): string {
   if (h < 24) return `${h}h`;
   const d = Math.round(h / 24);
-  return `${d} ${d === 1 ? 'día' : 'días'}`;
+  return `${d} ${d === 1 ? 'day' : 'days'}`;
 }
 
 export function WorkflowDiagram({ workflow, accent = 'active', activePathIds }: Props) {
@@ -148,7 +148,7 @@ export function WorkflowDiagram({ workflow, accent = 'active', activePathIds }: 
     <div className="relative border border-hairline bg-bg-raised p-10 md:p-16 overflow-x-auto">
       <div className="flex items-center justify-between mb-10">
         <Label>Workflow</Label>
-        <Label>{workflow.length} pasos</Label>
+        <Label>{workflow.length} steps</Label>
       </div>
 
       <div className="flex flex-col items-stretch gap-6 min-w-[600px]">
@@ -220,7 +220,7 @@ function WorkflowNode({
         style={{ borderColor: border }}
       >
         <div className="text-[9px] uppercase tracking-[0.14em] text-fg-subtle mb-1">
-          {CHANNEL_LABEL[step.channel]} · Enviar
+          {CHANNEL_LABEL[step.channel]} · Send
         </div>
         <div
           className="font-display text-lg leading-tight text-fg"
@@ -240,7 +240,7 @@ function WorkflowNode({
       >
         <div className="text-center">
           <div className="text-[9px] uppercase tracking-[0.14em] text-fg-subtle mb-1">
-            Esperar
+            Wait
           </div>
           <div className="font-mono text-lg text-fg tabular-nums">
             {step.kind === 'wait' ? formatHours(step.hours) : ''}
@@ -257,7 +257,7 @@ function WorkflowNode({
         style={{ borderColor: border }}
       >
         <div className="text-[9px] uppercase tracking-[0.14em] text-fg-subtle mb-1">
-          Decisión
+          Decision
         </div>
         <div
           className="font-display italic text-lg text-fg"
@@ -279,7 +279,7 @@ function WorkflowNode({
         className="font-mono text-[10px] uppercase tracking-[0.14em]"
         style={{ color: accentHex }}
       >
-        {step.outcome === 'escalated' ? '✕ Derivado' : '✓ Fin'}
+        {step.outcome === 'escalated' ? '✕ Routed' : '✓ End'}
       </div>
     </div>
   );

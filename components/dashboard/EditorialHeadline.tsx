@@ -24,7 +24,7 @@ export function EditorialHeadline({ prefix, highlight, suffix, className }: Prop
           fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
         }}
       >
-        Titular · Hoy
+        Headline · Today
       </span>
 
       <h1
@@ -88,7 +88,7 @@ export function EditorialHeadline({ prefix, highlight, suffix, className }: Prop
         className="k-italic-serif text-[18px] leading-snug"
         style={{ color: 'var(--fg-muted)', maxWidth: '44ch' }}
       >
-        Aprobás o dejás pasar. El sistema arma el resto.
+        Approve or pass. The system handles the rest.
       </p>
     </div>
   );

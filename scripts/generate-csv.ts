@@ -1,5 +1,5 @@
 /**
- * Deterministic demo CSV generator for Fabric Sushi.
+ * Deterministic demo CSV generator for La Cabrera.
  * Output: data/demo-visits.csv (one row per visit)
  *
  * Distribution per spec:

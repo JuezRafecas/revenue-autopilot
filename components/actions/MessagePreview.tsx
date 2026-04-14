@@ -17,9 +17,9 @@ interface Props {
  */
 export function MessagePreview({
   message,
-  timestamp = 'ahora',
+  timestamp = 'now',
   recipientName = 'Sofía Benítez',
-  senderName = 'Fabric Sushi',
+  senderName = 'La Cabrera',
   framed = true,
 }: Props) {
   const bubble = (
@@ -47,7 +47,7 @@ export function MessagePreview({
             {recipientName}
           </div>
           <div className="text-[11px] leading-tight" style={{ color: '#8696A0' }}>
-            en línea
+            online
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@ export function MessagePreview({
     <div className="border border-hairline p-6 bg-bg-raised">
       <div className="flex items-center justify-between mb-4">
         <Label>Preview · WhatsApp</Label>
-        <Label className="text-accent">Listo para enviar</Label>
+        <Label className="text-accent">Ready to send</Label>
       </div>
       {bubble}
     </div>

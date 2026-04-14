@@ -41,9 +41,9 @@ export function PendingApprovalsHero({ messages }: Props) {
           }}
         >
           <EmptyState
-            title="Inbox limpio."
-            hint="No hay mensajes esperando tu aprobación. ¿Querés programar la reactivación de comensales dormidos?"
-            cta={{ label: 'Ir a plantillas', href: '/templates' }}
+            title="Inbox clear."
+            hint="No messages waiting on your approval. Want to schedule a reactivation for dormant guests?"
+            cta={{ label: 'Go to templates', href: '/templates' }}
           />
         </div>
       </section>
@@ -58,7 +58,7 @@ export function PendingApprovalsHero({ messages }: Props) {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <div>
           <SectionLabel tone="accent" className="mb-2">
-            Bandeja · Acción inmediata
+            Inbox · Needs action
           </SectionLabel>
           <h2
             style={{
@@ -76,7 +76,7 @@ export function PendingApprovalsHero({ messages }: Props) {
             >
               {visible.length}
             </span>{' '}
-            mensajes esperando tu aprobación.
+            messages waiting on your approval.
           </h2>
         </div>
         {remaining > 0 && (
@@ -90,7 +90,7 @@ export function PendingApprovalsHero({ messages }: Props) {
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Ver las {remaining} restantes
+            See the remaining {remaining}
             <span aria-hidden>→</span>
           </Link>
         )}
@@ -99,7 +99,7 @@ export function PendingApprovalsHero({ messages }: Props) {
       <div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5"
         role="list"
-        aria-label={`${visible.length} mensajes pendientes de aprobación`}
+        aria-label={`${visible.length} messages pending approval`}
       >
         <AnimatePresence mode="popLayout">
           {shown.map((m) => (

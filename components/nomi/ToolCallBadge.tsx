@@ -11,43 +11,43 @@ interface ToolCallBadgeProps {
   summary?: string;
 }
 
-const TOOL_ES: Record<
+const TOOL_META: Record<
   string,
   { label: string; verbRunning: string; icon: string }
 > = {
   queryCustomers: {
-    label: 'clientes',
-    verbRunning: 'consultando CDP',
+    label: 'guests',
+    verbRunning: 'querying CDP',
     icon: '◎',
   },
   getSegmentMetrics: {
-    label: 'segmentos',
-    verbRunning: 'midiendo segmentos',
+    label: 'segments',
+    verbRunning: 'measuring segments',
     icon: '◒',
   },
   getCampaignResults: {
-    label: 'campañas',
-    verbRunning: 'leyendo resultados',
+    label: 'campaigns',
+    verbRunning: 'reading results',
     icon: '◈',
   },
   listTemplates: {
     label: 'templates',
-    verbRunning: 'cargando recetas',
+    verbRunning: 'loading templates',
     icon: '◧',
   },
   detectOpportunities: {
-    label: 'oportunidades',
-    verbRunning: 'detectando oportunidades',
+    label: 'opportunities',
+    verbRunning: 'detecting opportunities',
     icon: '✦',
   },
   estimateAudienceSize: {
-    label: 'audiencia',
-    verbRunning: 'estimando audiencia',
+    label: 'audience',
+    verbRunning: 'estimating audience',
     icon: '◉',
   },
   draftCampaign: {
-    label: 'borrador',
-    verbRunning: 'redactando borrador',
+    label: 'draft',
+    verbRunning: 'drafting campaign',
     icon: '◐',
   },
 };
@@ -61,7 +61,7 @@ export function ToolCallBadge({
 }: ToolCallBadgeProps) {
   const [open, setOpen] = useState(false);
   const meta =
-    TOOL_ES[toolName] ?? { label: toolName, verbRunning: toolName, icon: '◇' };
+    TOOL_META[toolName] ?? { label: toolName, verbRunning: toolName, icon: '◇' };
   const isRunning =
     state === 'input-streaming' || state === 'input-available';
   const isError = state === 'output-error';

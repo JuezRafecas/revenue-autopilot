@@ -15,7 +15,7 @@ export function MobileNavTrigger({ onOpen }: { onOpen: () => void }) {
       <button
         type="button"
         onClick={onOpen}
-        aria-label="Abrir menú de navegación"
+        aria-label="Open navigation menu"
         className="inline-flex items-center justify-center p-2 -mr-2 transition-colors hover:bg-[var(--bg-sunken)]"
       >
         <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden>

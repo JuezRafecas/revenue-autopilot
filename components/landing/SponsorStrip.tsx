@@ -5,7 +5,7 @@ export function SponsorStrip() {
     <section className="relative border-t border-b border-[#e4dfd2] bg-[#f1ede3]/60">
       <div className="editorial-container py-7 flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="k-label text-[10px] text-[#8a8782] whitespace-nowrap">
-          Presentado en · Presented at
+          Presented at
         </div>
 
         <div className="flex items-center gap-10 md:gap-14 opacity-90">

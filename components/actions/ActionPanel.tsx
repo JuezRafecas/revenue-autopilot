@@ -52,20 +52,20 @@ export function ActionPanel({
 
         <dl className="grid grid-cols-2 gap-x-6 gap-y-8 border-t border-hairline pt-6">
           <div>
-            <Label className="mb-2">Visitas</Label>
+            <Label className="mb-2">Visits</Label>
             <div className="font-mono text-2xl text-fg">
               <Numeral value={totalVisits} />
             </div>
           </div>
           <div>
-            <Label className="mb-2">Hace</Label>
+            <Label className="mb-2">Last</Label>
             <div className="font-mono text-2xl text-fg">
               {daysSinceLast}
-              <span className="text-xs text-fg-subtle ml-1">días</span>
+              <span className="text-xs text-fg-subtle ml-1">days ago</span>
             </div>
           </div>
           <div className="col-span-2 pt-4 border-t border-hairline">
-            <Label className="mb-2">Revenue estimado</Label>
+            <Label className="mb-2">Estimated revenue</Label>
             <div className="font-mono text-3xl text-accent">
               <Numeral value={estimatedRevenue} format="ars" animated />
             </div>
@@ -76,15 +76,15 @@ export function ActionPanel({
           {status === 'pending' ? (
             <>
               <Button variant="primary" onClick={handleApprove}>
-                Aprobar y enviar
+                Approve and send
               </Button>
               <Button variant="ghost" onClick={onRegenerate}>
-                Regenerar
+                Regenerate
               </Button>
             </>
           ) : (
             <div className="font-mono text-[11px] uppercase tracking-label text-segment-active">
-              ✓ Aprobado · enviando
+              ✓ Approved · sending
             </div>
           )}
         </div>

@@ -35,7 +35,7 @@ export function ProblemSection() {
 
       <div className="mt-20 pt-10 k-divider-rule">
         <span className="k-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8782]">
-          Lo que el sistema ve
+          What the system sees
         </span>
       </div>
 

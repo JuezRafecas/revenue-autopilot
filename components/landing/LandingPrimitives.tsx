@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 export function KaszekLogo({ small = false }: { small?: boolean }) {
   const size = small ? 18 : 22;
   return (
-    <div className="flex items-baseline gap-[3px]" aria-label="Revenue Autopilot">
+    <div className="flex items-baseline gap-[3px]" aria-label="Nomi - Guest Autopilot">
       <span
         className="k-display italic"
         style={{
@@ -13,7 +13,7 @@ export function KaszekLogo({ small = false }: { small?: boolean }) {
           letterSpacing: '-0.03em',
         }}
       >
-        Revenue
+        Nomi
       </span>
       <span
         className="k-display"
@@ -22,9 +22,10 @@ export function KaszekLogo({ small = false }: { small?: boolean }) {
           lineHeight: 1,
           color: '#e6784c',
           letterSpacing: '-0.04em',
+          marginLeft: 4,
         }}
       >
-        Autopilot
+        Guest Autopilot
       </span>
       <span
         aria-hidden

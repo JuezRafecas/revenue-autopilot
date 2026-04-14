@@ -2,12 +2,12 @@ import type { Segment } from '@/lib/types';
 
 /* ─────────────────────────────────────────────────────────────
    Landing copy + illustrative numbers.
-   Sourced from hackathon-knowledge-base.md. Plain ES strings.
+   Sourced from hackathon-knowledge-base.md. Plain EN strings.
    Segment config is imported directly from lib/constants at the
    component level — never duplicated here.
    ───────────────────────────────────────────────────────────── */
 
-// §04 — El problema
+// §04 — The problem
 export interface ProblemStat {
   value: string;
   valueNumeric: number;
@@ -22,33 +22,33 @@ export const PROBLEM_STATS: ProblemStat[] = [
     value: '70',
     valueNumeric: 70,
     suffix: '%',
-    label: 'De los comensales nunca se fideliza con tu marca',
-    sub: 'La fuga entra en el 70-95% según el formato',
+    label: 'Of guests never become loyal to your brand',
+    sub: 'Churn runs 70–95% depending on the format',
   },
   {
     value: '45',
     valueNumeric: 45,
-    suffix: ' días',
-    label: 'Promedio hasta que un activo se convierte en dormido',
-    sub: 'Sin alerta, sin acción',
+    suffix: ' days',
+    label: 'Average time for an active guest to go dormant',
+    sub: 'No alert, no action',
   },
   {
     value: '79',
     valueNumeric: 79,
-    label: 'Señales por cliente que el sistema ya calcula',
-    sub: 'RFM, frecuencia, sector, idioma, scores',
+    label: 'Signals per guest the system already computes',
+    sub: 'RFM, frequency, section, language, scores',
   },
   {
     value: '500',
     valueNumeric: 500,
     suffix: '+',
-    label: 'Restaurantes reales alimentando el modelo',
-    sub: 'Argentina · Chile · Uruguay · Brasil · México',
+    label: 'Real restaurants feeding the model',
+    sub: 'Argentina · Chile · Uruguay · Brazil · Mexico',
   },
 ];
 
 export const PROBLEM_PULL_QUOTE =
-  'Operan bien. Venden por debajo de su potencial. Tienen miles de clientes y dependen de Instagram para que alguien vuelva.';
+  'They operate well. They sell below their potential. They have thousands of guests and rely on Instagram to bring anyone back.';
 
 // §05 — Lifecycle Switcher
 export interface LifecycleSample {
@@ -70,78 +70,78 @@ export const LIFECYCLE_DEMO: Record<Segment, LifecycleDemo> = {
   lead: {
     volume: 820,
     trend: 'up',
-    trendLabel: '+12% vs mes anterior',
-    action: 'Convertir en primera visita con flujo de bienvenida',
-    metric: 'Tasa de conversión a cliente',
+    trendLabel: '+12% vs last month',
+    action: 'Convert to a first visit with a welcome flow',
+    metric: 'Lead-to-guest conversion rate',
     sample: {
       name: 'Valentina R.',
-      subtitle: 'Consulta por WhatsApp · sin reservas',
-      trait: 'Mira el menú los viernes',
+      subtitle: 'WhatsApp inquiry · no bookings',
+      trait: 'Browses the menu on Fridays',
     },
   },
   new: {
     volume: 380,
     trend: 'up',
-    trendLabel: '+8% vs mes anterior',
-    action: 'Traer a la segunda visita antes del día 21',
-    metric: 'Tasa de segunda visita',
+    trendLabel: '+8% vs last month',
+    action: 'Drive the second visit before day 21',
+    metric: 'Second-visit rate',
     sample: {
       name: 'Matías T.',
-      subtitle: '1 visita · hace 6 días',
-      trait: 'Vino un jueves con su pareja',
+      subtitle: '1 visit · 6 days ago',
+      trait: 'Came on a Thursday with his partner',
     },
   },
   active: {
     volume: 1240,
     trend: 'flat',
-    trendLabel: 'Estable',
-    action: 'Mantener ritmo, pedir review, profundizar relación',
-    metric: 'Frecuencia de visita',
+    trendLabel: 'Steady',
+    action: 'Hold the pace, ask for a review, deepen the relationship',
+    metric: 'Visit frequency',
     sample: {
       name: 'Lucía P.',
-      subtitle: '9 visitas · última hace 14 días',
-      trait: 'Cliente de barra, viernes a la noche',
+      subtitle: '9 visits · last one 14 days ago',
+      trait: 'Bar regular, Friday nights',
     },
   },
   at_risk: {
     volume: 620,
     trend: 'down',
-    trendLabel: '−6% vs mes anterior',
-    action: 'Recuperación preventiva antes que pase a dormido',
-    metric: 'Tasa de recuperación',
+    trendLabel: '−6% vs last month',
+    action: 'Preventive recovery before they go dormant',
+    metric: 'Recovery rate',
     sample: {
       name: 'Federico A.',
-      subtitle: '4 visitas · última hace 32 días',
-      trait: 'Su frecuencia era de 12 días',
+      subtitle: '4 visits · last one 32 days ago',
+      trait: 'His usual cadence was 12 days',
     },
   },
   dormant: {
     volume: 4532,
     trend: 'down',
-    trendLabel: 'La bolsa más grande',
-    action: 'Reactivar con nostalgia y cercanía, sin descuentos',
-    metric: 'Revenue recuperado',
+    trendLabel: 'The biggest pool',
+    action: 'Reactivate with nostalgia and warmth, no discounts',
+    metric: 'Revenue recovered',
     sample: {
       name: 'Juan P.',
-      subtitle: '7 visitas · última hace 58 días',
-      trait: 'Prefiere jueves noche, sector barra',
+      subtitle: '7 visits · last one 58 days ago',
+      trait: 'Prefers Thursday nights, bar section',
     },
   },
   vip: {
     volume: 210,
     trend: 'up',
-    trendLabel: '+3% vs mes anterior',
-    action: 'Experiencias exclusivas, invitaciones a eventos',
-    metric: 'Frecuencia × ticket promedio',
+    trendLabel: '+3% vs last month',
+    action: 'Exclusive experiences, event invitations',
+    metric: 'Frequency × average ticket',
     sample: {
       name: 'María L.',
-      subtitle: '18 visitas · ticket promedio $82k',
-      trait: 'Reserva para 6 personas los sábados',
+      subtitle: '18 visits · avg ticket $82k',
+      trait: 'Books for 6 on Saturdays',
     },
   },
 };
 
-// §06 — Cómo decide Claude (4 fases)
+// §06 — How Claude decides (4 phases)
 export interface ClaudePhase {
   kicker: string;
   title: string;
@@ -153,30 +153,30 @@ export interface ClaudePhase {
 export const CLAUDE_PHASES: ClaudePhase[] = [
   {
     kicker: '01',
-    title: 'Detecta',
-    body: 'Nomi analiza continuamente los datos del restaurante y responde una sola pregunta: ¿qué oportunidad de ingreso existe hoy?',
-    detail: 'VIP que no viene hace 50 días · 8 mesas vacías para mañana · cluster de primeras visitas que nunca volvieron.',
+    title: 'Detect',
+    body: 'Nomi continuously analyzes restaurant data and answers a single question: what revenue opportunity exists today?',
+    detail: 'A VIP who hasn\u2019t visited in 50 days · 8 empty tables for tomorrow · a cluster of first-timers who never came back.',
     accent: '#5b8def',
   },
   {
     kicker: '02',
     title: 'Decide',
-    body: 'Cada decisión es explícita: público, objetivo, canal, timing, incentivo y métrica de éxito.',
-    detail: 'Selecciona clientes concretos, no segmentos abstractos. Elige WhatsApp o email. Define la ventana de envío.',
+    body: 'Every decision is explicit: audience, objective, channel, timing, incentive, and success metric.',
+    detail: 'Picks specific guests, not abstract segments. Chooses WhatsApp or email. Defines the send window.',
     accent: '#0e5e48',
   },
   {
     kicker: '03',
-    title: 'Personaliza',
-    body: 'Genera mensajes con contexto real del cliente: nombre, historial, preferencia, tono y idioma.',
-    detail: 'Nostalgia para reactivación. Celebración para post-visita. Sin descuentos por default — el incentivo es el último recurso.',
+    title: 'Personalize',
+    body: 'Generates messages with real guest context: name, history, preferences, tone, and language.',
+    detail: 'Nostalgia for reactivation. Celebration for post-visit. No discounts by default — incentives are the last resort.',
     accent: '#e6784c',
   },
   {
     kicker: '04',
-    title: 'Ejecuta y aprende',
-    body: 'Envía, respeta reglas de frecuencia, trackea la respuesta y atribuye revenue real a cada acción.',
-    detail: 'El outcome alimenta las decisiones del mes siguiente. El sistema se ajusta solo.',
+    title: 'Execute and learn',
+    body: 'Sends, respects frequency rules, tracks response, and attributes real revenue to every action.',
+    detail: 'The outcome feeds next month\u2019s decisions. The system tunes itself.',
     accent: '#f0a04b',
   },
 ];
@@ -193,7 +193,7 @@ export interface GuestContext {
   preferred_sector: string;
   last_score: number;
   lifecycle_state: Segment;
-  guest_language: 'es' | 'pt';
+  guest_language: 'en' | 'es' | 'pt';
 }
 
 export const WHATSAPP_DEMO: {
@@ -207,19 +207,19 @@ export const WHATSAPP_DEMO: {
     total_visits: 7,
     days_since_last_visit: 58,
     avg_days_between_visits: 18,
-    preferred_day: 'jueves',
-    preferred_shift: 'noche',
-    preferred_sector: 'barra',
+    preferred_day: 'thursday',
+    preferred_shift: 'evening',
+    preferred_sector: 'bar',
     last_score: 4.5,
     lifecycle_state: 'dormant',
-    guest_language: 'es',
+    guest_language: 'en',
   },
   message:
-    'Hola Juan 👋\nHace un tiempo no te vemos por La Cabrera.\nEsta semana tenemos una mesa en la barra esperándote 😉\n¿Te gustaría venir un jueves?',
-  delivery: 'Entregado · leído',
+    'Hi Juan 👋\nIt\u2019s been a while since we\u2019ve seen you at La Cabrera.\nThis week we have a seat at the bar waiting for you 😉\nWant to stop by on a Thursday?',
+  delivery: 'Delivered · read',
 };
 
-// §07 — canal table
+// §07 — channel table
 export interface ChannelStat {
   channel: string;
   openRate: string;
@@ -236,7 +236,7 @@ export const CHANNEL_STATS: ChannelStat[] = [
     openRateNumeric: 25,
     conversion: '2–5%',
     conversionNumeric: 3.5,
-    note: 'Útil como complemento',
+    note: 'Useful as a complement',
   },
   {
     channel: 'SMS',
@@ -244,7 +244,7 @@ export const CHANNEL_STATS: ChannelStat[] = [
     openRateNumeric: 75,
     conversion: '10–20%',
     conversionNumeric: 15,
-    note: 'Invasivo y genérico',
+    note: 'Invasive and generic',
   },
   {
     channel: 'WhatsApp',
@@ -252,7 +252,7 @@ export const CHANNEL_STATS: ChannelStat[] = [
     openRateNumeric: 97,
     conversion: '45–60%',
     conversionNumeric: 52,
-    note: 'Canal nativo de LATAM',
+    note: 'LATAM\u2019s native channel',
   },
   {
     channel: 'Voice',
@@ -260,15 +260,15 @@ export const CHANNEL_STATS: ChannelStat[] = [
     openRateNumeric: 68,
     conversion: '55–70%',
     conversionNumeric: 62,
-    note: 'Reactivación VIP · trato humano',
+    note: 'VIP reactivation · human touch',
   },
 ];
 
-// §08 — 5 momentos fundacionales
+// §08 — 5 foundational moments
 export interface UseCase {
   rank: string;
   title: string;
-  mode: 'Automático' | 'Manual' | 'Automático (activable)' | 'Manual → Automático';
+  mode: 'Automatic' | 'Manual' | 'Automatic (opt-in)' | 'Manual → Automatic';
   trigger: string;
   action: string;
   metric: string;
@@ -278,47 +278,47 @@ export interface UseCase {
 export const USE_CASES: UseCase[] = [
   {
     rank: '01',
-    title: 'Post-visita inteligente',
-    mode: 'Automático',
-    trigger: 'El cliente terminó de visitar el restaurante',
-    action: 'Flujo adaptativo: agradecimiento → review → invitación a volver',
-    metric: 'Tasa de review · segundas visitas · revenue generado',
+    title: 'Smart post-visit',
+    mode: 'Automatic',
+    trigger: 'The guest just finished their visit',
+    action: 'Adaptive flow: thank you → review → invitation to return',
+    metric: 'Review rate · second visits · revenue generated',
     tileVariant: 'mint',
   },
   {
     rank: '02',
-    title: 'Primera → segunda visita',
-    mode: 'Automático',
-    trigger: 'Primera visita detectada en los últimos 7 días',
-    action: 'Contacto específico enfocado en conversión — incentivo solo si los datos lo justifican',
-    metric: 'Tasa de segunda visita · tiempo hasta volver',
+    title: 'First → second visit',
+    mode: 'Automatic',
+    trigger: 'First visit detected in the last 7 days',
+    action: 'Targeted outreach focused on conversion — incentive only if the data justifies it',
+    metric: 'Second-visit rate · time to return',
     tileVariant: 'royal',
   },
   {
     rank: '03',
-    title: 'Reactivación de dormidos',
-    mode: 'Automático (activable)',
-    trigger: '2+ visitas previas y sin venir hace 45–60 días',
-    action: 'Nostalgia + cercanía, un solo canal (WhatsApp), sin descuentos al inicio',
-    metric: 'Tasa de reactivación · revenue recuperado',
+    title: 'Dormant reactivation',
+    mode: 'Automatic (opt-in)',
+    trigger: '2+ prior visits and no visit in 45–60 days',
+    action: 'Nostalgia + warmth, a single channel (WhatsApp), no discounts up front',
+    metric: 'Reactivation rate · revenue recovered',
     tileVariant: 'terra',
   },
   {
     rank: '04',
-    title: 'Promocionar evento',
+    title: 'Promote an event',
     mode: 'Manual',
-    trigger: 'El restaurante selecciona un evento o experiencia',
-    action: 'Nomi sugiere la audiencia y escribe el mensaje — se envía',
-    metric: 'Reservas generadas · revenue del evento',
+    trigger: 'The restaurant selects an event or experience',
+    action: 'Nomi suggests the audience and writes the message — it gets sent',
+    metric: 'Bookings generated · event revenue',
     tileVariant: 'sun',
   },
   {
     rank: '05',
-    title: 'Llenar mesas en días flojos',
-    mode: 'Manual → Automático',
-    trigger: 'Patrón de ocupación baja detectado',
-    action: 'Invita a clientes que históricamente vienen ese día, o tienen flexibilidad',
-    metric: 'Ocupación incremental · revenue incremental',
+    title: 'Fill tables on slow days',
+    mode: 'Manual → Automatic',
+    trigger: 'Low-occupancy pattern detected',
+    action: 'Invites guests who historically come on that day, or who have flexibility',
+    metric: 'Incremental occupancy · incremental revenue',
     tileVariant: 'green',
   },
 ];
@@ -338,17 +338,17 @@ export const REVENUE_MOCKUP: {
   lines: RevenueLine[];
 } = {
   total: 2350000,
-  month: 'Revenue generado este mes',
+  month: 'Revenue generated this month',
   lines: [
     {
-      label: 'Reactivación de dormidos',
+      label: 'Dormant reactivation',
       sent: 312,
       converted: 47,
       revenue: 1880000,
       accent: '#e6784c',
     },
     {
-      label: 'Post-visita inteligente',
+      label: 'Smart post-visit',
       sent: 890,
       converted: 28,
       revenue: 470000,
@@ -357,7 +357,7 @@ export const REVENUE_MOCKUP: {
   ],
 };
 
-// §10 — Diferenciación
+// §10 — Differentiation
 export interface DiffRow {
   them: string;
   us: string;
@@ -365,36 +365,36 @@ export interface DiffRow {
 
 export const DIFFERENTIATION: DiffRow[] = [
   {
-    them: 'Herramientas para enviar mensajes',
-    us: 'Sistema que decide qué enviar, a quién y cuándo',
+    them: 'Tools to send messages',
+    us: 'A system that decides what to send, to whom, and when',
   },
   {
-    them: 'Campaign builder manual',
+    them: 'Manual campaign builder',
     us: 'Approve, don\u2019t configure',
   },
   {
-    them: 'Email + SMS como canales principales',
-    us: 'WhatsApp-native con 95%+ open rate en LATAM',
+    them: 'Email + SMS as the main channels',
+    us: 'WhatsApp-native with 95%+ open rates in LATAM',
   },
   {
-    them: 'Métricas de engagement',
-    us: 'Métricas de revenue incremental',
+    them: 'Engagement metrics',
+    us: 'Incremental revenue metrics',
   },
   {
-    them: 'Requiere un marketer full-time',
-    us: 'Funciona sin marketer',
+    them: 'Requires a full-time marketer',
+    us: 'Works without a marketer',
   },
   {
-    them: 'Segmentación manual',
-    us: 'Audiencias automáticas por ciclo de vida',
+    them: 'Manual segmentation',
+    us: 'Automatic lifecycle-based audiences',
   },
   {
-    them: 'Copy genérico',
-    us: 'Mensajes personalizados por Nomi',
+    them: 'Generic copy',
+    us: 'Messages personalized by Nomi',
   },
 ];
 
-// §11 — 5 mandamientos
+// §11 — 5 commandments
 export interface Mandamiento {
   rank: string;
   title: string;
@@ -404,71 +404,71 @@ export interface Mandamiento {
 export const MANDAMIENTOS: Mandamiento[] = [
   {
     rank: '01',
-    title: 'Revenue > actividad',
-    body: 'Si no mueve ingresos, no importa. Open rate y click rate no son métricas de negocio.',
+    title: 'Revenue > activity',
+    body: 'If it doesn\u2019t move revenue, it doesn\u2019t matter. Open rate and click rate are not business metrics.',
   },
   {
     rank: '02',
-    title: 'Decisiones cerradas',
-    body: 'El restaurante aprueba o no. Nada de configuración. Menos opciones, más impacto.',
+    title: 'Closed decisions',
+    body: 'The restaurant approves or rejects. No configuration. Fewer options, more impact.',
   },
   {
     rank: '03',
-    title: 'Automatización con control',
-    body: 'Determinismo primero. IA generativa como soporte, no como cerebro. Todo se puede explicar, apagar y medir.',
+    title: 'Automation with control',
+    body: 'Determinism first. Generative AI as support, not as the brain. Everything can be explained, turned off, and measured.',
   },
   {
     rank: '04',
-    title: 'White label total',
-    body: 'El restaurante percibe que "el sistema se encarga". No debe sentir que usa una herramienta compleja.',
+    title: 'Fully white-labeled',
+    body: 'The restaurant feels that "the system takes care of it." It should never feel like a complex tool.',
   },
   {
     rank: '05',
-    title: 'Infraestructura como leverage',
-    body: 'Todo lo no diferencial se compra o delega. No construimos lo que otro ya resolvió.',
+    title: 'Infrastructure as leverage',
+    body: 'Everything non-differentiating is bought or outsourced. We don\u2019t build what someone else has already solved.',
   },
 ];
 
 // Section headers
 export const SECTION_HEADERS = {
   problema: {
-    eyebrow: 'El problema',
-    title: 'La plata que se está yendo\nmientras nadie mira.',
-    lead: 'Los restaurantes tienen miles de clientes registrados pero no recurrencia sistemática. Tienen datos y no hacen nada con ellos. Pierden ingresos por churn silencioso.',
+    eyebrow: 'The problem',
+    title: 'The revenue walking out the door\nwhile no one is watching.',
+    lead: 'Restaurants have thousands of guests on file but no systematic recurrence. They have the data and do nothing with it. They lose revenue to silent churn.',
   },
   lifecycle: {
-    eyebrow: 'Ciclo de vida',
-    title: 'Seis estados.\nSeis acciones concretas.',
-    lead: 'Cada cliente vive en un estado operativo — no es analítico, es accionable. Nomi activa la acción correspondiente sin que vos tengas que pensar en segmentos.',
+    eyebrow: 'Lifecycle',
+    title: 'Six states.\nSix concrete actions.',
+    lead: 'Every guest lives in an operational state — not analytical, actionable. Nomi triggers the right action without you having to think about segments.',
   },
   metodo: {
-    eyebrow: 'Cómo decide Nomi',
-    title: 'Un cerebro comercial,\nno un chatbot.',
-    lead: 'Nomi opera en cuatro fases continuas: detecta, decide, personaliza y ejecuta. Cada decisión es explícita y trackeable.',
+    eyebrow: 'How Nomi decides',
+    title: 'A commercial brain,\nnot a chatbot.',
+    lead: 'Nomi operates in four continuous phases: detect, decide, personalize, and execute. Every decision is explicit and trackable.',
   },
   whatsapp: {
-    eyebrow: 'Nomi escribe como un dueño',
-    title: 'El mensaje no es\ncopy genérico.',
-    lead: 'Con el contexto real del cliente, Nomi genera un mensaje que el dueño del restaurante firmaría. Sin descuentos por default, sin tono corporativo, sin urgencia falsa.',
+    eyebrow: 'Nomi writes like an owner',
+    title: 'The message is not\ngeneric copy.',
+    lead: 'With real guest context, Nomi writes messages the restaurant owner would sign. No default discounts, no corporate tone, no fake urgency.',
   },
   casos: {
-    eyebrow: 'Casos de uso V1',
-    title: 'Cinco momentos\nfundacionales.',
-    lead: 'Elegidos porque en conjunto cubren todo el ciclo de vida, combinan acciones automáticas y manuales, y generan resultados en el corto plazo.',
+    eyebrow: 'V1 use cases',
+    title: 'Five foundational\nmoments.',
+    lead: 'Chosen because together they cover the entire lifecycle, mix automatic and manual actions, and deliver results in the short term.',
   },
   impacto: {
-    eyebrow: 'Lo que ves a fin de mes',
-    title: 'El único número\nque importa.',
-    lead: 'Revenue incremental generado por el sistema. Ingresos que no existirían sin las decisiones de Nomi. No optimizamos nada que no mueva este número.',
+    eyebrow: 'What you see at month-end',
+    title: 'The only number\nthat matters.',
+    lead: 'Incremental revenue generated by the system. Revenue that wouldn\u2019t exist without Nomi\u2019s decisions. We don\u2019t optimize anything that doesn\u2019t move this number.',
   },
   diff: {
-    eyebrow: 'Landscape competitivo',
-    title: 'Todos ofrecen herramientas.\nNosotros ofrecemos resultado.',
-    lead: 'No existe un sistema como este en Latinoamérica. Los competidores globales siguen en el paradigma de "campaign builder" que requiere configuración humana.',
+    eyebrow: 'Competitive landscape',
+    title: 'Everyone sells tools.\nWe sell outcomes.',
+    lead: 'Nothing like this exists in Latin America. Global competitors are still stuck in the "campaign builder" paradigm that requires human configuration.',
   },
   cta: {
-    eyebrow: 'Los cinco mandamientos',
+    eyebrow: 'The five commandments',
     title: 'Approve,\ndon\u2019t configure.',
-    lead: 'No es un CRM. No es un campaign manager. Es un agente de revenue autónomo que convierte datos dispersos en acciones con impacto económico real.',
+    lead: 'Not a CRM. Not a campaign manager. An autonomous revenue agent that turns scattered data into actions with real economic impact.',
   },
 } as const;

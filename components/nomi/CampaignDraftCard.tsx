@@ -35,7 +35,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
       router.push(`/campaigns/${campaign.id}`);
     } catch (e) {
       setState('error');
-      setError(e instanceof Error ? e.message : 'Error desconocido.');
+      setError(e instanceof Error ? e.message : 'Unknown error.');
     }
   };
 
@@ -45,7 +45,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
         className="k-mono my-3 py-2 text-[10px] uppercase"
         style={{ letterSpacing: '0.14em', color: 'var(--fg-subtle)' }}
       >
-        · borrador descartado ·
+        · draft dismissed ·
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
   const branches = countWorkflowBranches(draft.workflow);
   const trigger = formatTrigger(draft.trigger);
   const money = draft.estimated_revenue
-    ? new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(draft.estimated_revenue)
+    ? new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(draft.estimated_revenue)
     : '—';
 
   return (
@@ -72,7 +72,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
         style={{ borderBottom: '1px solid var(--hairline)' }}
       >
         <div className="k-label" style={{ color: 'var(--k-green)' }}>
-          Borrador de campaña · nomi
+          Campaign draft · nomi
         </div>
         <div
           className="k-mono text-[10px] uppercase"
@@ -100,7 +100,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
           className="k-italic-serif"
           style={{ fontSize: 14, color: 'var(--fg-muted)' }}
         >
-          Diseñada ahora mismo por Nomi.
+          Designed just now by Nomi.
         </p>
       </div>
 
@@ -112,7 +112,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
           }}
         >
           <div className="k-label mb-1" style={{ color: 'var(--fg-subtle)', fontSize: 9.5 }}>
-            Por qué
+            Why
           </div>
           <p
             className="k-italic-serif"
@@ -123,16 +123,16 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
         </div>
       )}
 
-      <DraftRow label="Audiencia" value={draft.described_audience || 'toda la base'} />
-      <DraftRow label="Disparador" value={trigger} mono />
+      <DraftRow label="Audience" value={draft.described_audience || 'entire base'} />
+      <DraftRow label="Trigger" value={trigger} mono />
       <DraftRow
-        label="Flujo"
-        value={`${sends} envío${sends === 1 ? '' : 's'}${
-          branches > 0 ? ` · ${branches} bifurcación${branches === 1 ? '' : 'es'}` : ''
+        label="Flow"
+        value={`${sends} send${sends === 1 ? '' : 's'}${
+          branches > 0 ? ` · ${branches} branch${branches === 1 ? '' : 'es'}` : ''
         } · ${draft.channels.join(', ')}`}
         mono
       />
-      <DraftRow label="Revenue esperado" value={`${currency} ${money}`} mono />
+      <DraftRow label="Expected revenue" value={`${currency} ${money}`} mono />
 
       <footer
         className="px-6 py-5 flex items-center gap-4"
@@ -156,10 +156,10 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
           }}
         >
           {state === 'creating'
-            ? 'Creando · · ·'
+            ? 'Creating · · ·'
             : state === 'created'
-              ? 'Creada'
-              : 'Aprobar y crear'}
+              ? 'Created'
+              : 'Approve and create'}
           {state === 'idle' && <span aria-hidden>→</span>}
         </button>
         <button
@@ -172,7 +172,7 @@ export function CampaignDraftCard({ draft, currency = 'ARS' }: CampaignDraftCard
             color: 'var(--fg-subtle)',
           }}
         >
-          Descartar
+          Dismiss
         </button>
         {error && (
           <div
@@ -222,7 +222,7 @@ function DraftRow({
 }
 
 function formatTrigger(trigger: CampaignDraft['trigger']): string {
-  if (trigger.type === 'manual') return 'manual · un disparo';
+  if (trigger.type === 'manual') return 'manual · one shot';
   if (trigger.type === 'schedule') return `schedule · ${trigger.at}`;
   return `event · ${trigger.event}${trigger.delay_hours ? ` · +${trigger.delay_hours}h` : ''}`;
 }

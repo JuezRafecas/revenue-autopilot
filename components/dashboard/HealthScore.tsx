@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function HealthScore({ score, activeCount, totalCount, diagnosis, series }: Props) {
-  const severity = score < 25 ? 'crítica' : score < 50 ? 'en riesgo' : 'estable';
+  const severity = score < 25 ? 'critical' : score < 50 ? 'at risk' : 'stable';
 
   return (
     <section className="flex flex-col">
@@ -24,7 +24,7 @@ export function HealthScore({ score, activeCount, totalCount, diagnosis, series 
           fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
         }}
       >
-        Diagnóstico · Salud de la base
+        Diagnosis · Base health
       </div>
 
       <div className="flex flex-col">
@@ -68,7 +68,7 @@ export function HealthScore({ score, activeCount, totalCount, diagnosis, series 
               height={28}
               strokeWidth={1.5}
               color="var(--accent)"
-              ariaLabel="Evolución de la salud de la base en los últimos 30 días"
+              ariaLabel="Base health trend over the last 30 days"
             />
             <span
               className="font-mono text-[9px] tabular-nums"
@@ -91,14 +91,14 @@ export function HealthScore({ score, activeCount, totalCount, diagnosis, series 
             className="uppercase text-[10px] ml-1"
             style={{ letterSpacing: '0.16em', color: 'var(--fg-subtle)' }}
           >
-            comensales activos
+            active guests
           </span>
         </div>
         <span
           className="k-event-pill mt-5 self-start"
           style={{ textTransform: 'uppercase' }}
         >
-          Salud {severity}
+          Health {severity}
         </span>
       </div>
 

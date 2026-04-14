@@ -54,9 +54,9 @@ export function GuestProfile({
         </h1>
 
         <dl className="grid grid-cols-2 gap-x-8 gap-y-8 border-t border-hairline pt-8">
-          <Metric label="Visitas" value={<Numeral value={total_visits} size="xl" />} />
+          <Metric label="Visits" value={<Numeral value={total_visits} size="xl" />} />
           <Metric
-            label="Última"
+            label="Last"
             value={
               <span className="font-mono text-4xl tabular-nums">
                 {days_since_last}
@@ -65,7 +65,7 @@ export function GuestProfile({
             }
           />
           <Metric
-            label="Gastado"
+            label="Spent"
             value={<Numeral value={total_spent} format="ars" size="lg" className="text-accent" />}
           />
           <Metric
@@ -79,7 +79,7 @@ export function GuestProfile({
             }
           />
           <Metric
-            label="Mesa habitual"
+            label="Usual table"
             value={
               <span
                 className="font-display italic text-2xl text-fg"
@@ -90,7 +90,7 @@ export function GuestProfile({
             }
           />
           <Metric
-            label="Día preferido"
+            label="Preferred day"
             value={
               <span
                 className="font-display italic text-2xl text-fg capitalize"
@@ -101,11 +101,11 @@ export function GuestProfile({
             }
           />
           <Metric
-            label="Grupo"
+            label="Party"
             value={
               <span className="font-mono text-4xl tabular-nums">
                 {avg_party_size.toFixed(1)}
-                <span className="text-sm text-fg-subtle ml-1">pers</span>
+                <span className="text-sm text-fg-subtle ml-1">ppl</span>
               </span>
             }
           />
@@ -114,14 +114,14 @@ export function GuestProfile({
 
       {/* Right: timeline */}
       <section>
-        <Label className="mb-6">Historial de Visitas</Label>
+        <Label className="mb-6">Visit History</Label>
         <ol className="relative border-l border-hairline pl-8">
           {visits.map((v, i) => (
             <li key={v.id} className="relative pb-10 last:pb-0">
               <span className="absolute -left-[33px] top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
               <div className="flex items-start gap-6">
                 <time className="font-mono text-[11px] uppercase tracking-label text-fg-subtle shrink-0 w-[120px] pt-1">
-                  {new Date(v.date).toLocaleDateString('es-AR', {
+                  {new Date(v.date).toLocaleDateString('en-US', {
                     day: '2-digit',
                     month: 'short',
                     year: '2-digit',
@@ -132,7 +132,7 @@ export function GuestProfile({
                     className="font-display text-xl text-fg"
                     style={{ fontVariationSettings: '"opsz" 144, "SOFT" 30' }}
                   >
-                    {v.party_size} {v.party_size === 1 ? 'persona' : 'personas'} · {v.sector}
+                    {v.party_size} {v.party_size === 1 ? 'person' : 'people'} · {v.sector}
                   </div>
                   <div className="mt-1 flex items-center gap-3 text-[12px] text-fg-muted font-mono">
                     <span className="uppercase tracking-label text-[10px]">{v.shift}</span>

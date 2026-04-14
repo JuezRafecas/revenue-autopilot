@@ -42,7 +42,7 @@ export function CampaignRow({ campaign, index = 0 }: { campaign: Campaign; index
                   fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
                 }}
               >
-                {campaign.type === 'automation' ? 'Automación' : 'Campaña puntual'}
+                {campaign.type === 'automation' ? 'Automation' : 'One-off campaign'}
               </span>
             </div>
             <h3
@@ -71,14 +71,14 @@ export function CampaignRow({ campaign, index = 0 }: { campaign: Campaign; index
           </div>
 
           {/* Desktop metrics */}
-          <div className="hidden lg:block"><Metric value={<Numeral value={campaign.metrics.sent} />} label="enviados" /></div>
+          <div className="hidden lg:block"><Metric value={<Numeral value={campaign.metrics.sent} />} label="sent" /></div>
           <div className="hidden lg:block"><Metric
             value={`${(campaign.metrics.response_rate * 100).toFixed(1)}%`}
-            label="respuesta"
+            label="response"
           /></div>
           <div className="hidden lg:block"><Metric
             value={`${(campaign.metrics.conversion_rate * 100).toFixed(1)}%`}
-            label="conversión"
+            label="conversion"
           /></div>
           <div className="hidden lg:block"><Metric
             value={formatARS(campaign.metrics.revenue_attributed)}
@@ -88,7 +88,7 @@ export function CampaignRow({ campaign, index = 0 }: { campaign: Campaign; index
 
           {/* Mobile compact metrics */}
           <div className="lg:hidden col-span-2 mt-3 grid grid-cols-3 gap-3 pt-3 border-t border-hairline">
-            <MobileMetric label="Enviados" value={<Numeral value={campaign.metrics.sent} />} />
+            <MobileMetric label="Sent" value={<Numeral value={campaign.metrics.sent} />} />
             <MobileMetric label="Conv." value={`${(campaign.metrics.conversion_rate * 100).toFixed(1)}%`} />
             <MobileMetric
               label="Revenue"
@@ -108,7 +108,7 @@ export function CampaignRow({ campaign, index = 0 }: { campaign: Campaign; index
                 fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
               }}
             >
-              Abrir
+              Open
               <span className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
           </div>

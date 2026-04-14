@@ -70,7 +70,7 @@ export function SessionMenu({
         >
           <path d="M3 5h18M3 12h18M3 19h18" />
         </svg>
-        Sesiones
+        Sessions
       </button>
 
       {open && (
@@ -102,7 +102,7 @@ export function SessionMenu({
               className="k-label"
               style={{ color: 'var(--k-green)', fontSize: 9.5 }}
             >
-              + Nueva conversación
+              + New conversation
             </span>
             <span
               className="k-mono"
@@ -112,7 +112,7 @@ export function SessionMenu({
                 letterSpacing: '0.14em',
               }}
             >
-              {activeCount} guardadas
+              {activeCount} saved
             </span>
           </button>
 
@@ -124,18 +124,18 @@ export function SessionMenu({
                 fontSize: 13,
               }}
             >
-              Todavía no hay conversaciones guardadas.
+              No saved conversations yet.
             </div>
           ) : (
             <ul>
               {sessions.map((s) => {
                 const isActive = s.id === activeSessionId;
                 const date = new Date(s.updated_at);
-                const time = date.toLocaleTimeString('es-AR', {
+                const time = date.toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
                 });
-                const day = date.toLocaleDateString('es-AR', {
+                const day = date.toLocaleDateString('en-US', {
                   day: '2-digit',
                   month: 'short',
                 });
@@ -173,7 +173,7 @@ export function SessionMenu({
                             lineHeight: 1.3,
                           }}
                         >
-                          {s.title || 'Sin título'}
+                          {s.title || 'Untitled'}
                         </div>
                         <div
                           className="k-mono mt-0.5"
@@ -183,7 +183,7 @@ export function SessionMenu({
                             letterSpacing: '0.08em',
                           }}
                         >
-                          {day} · {time} · {s.messages.length} mensajes
+                          {day} · {time} · {s.messages.length} messages
                         </div>
                       </button>
                       <button
@@ -202,8 +202,8 @@ export function SessionMenu({
                           background: 'transparent',
                           border: 'none',
                         }}
-                        aria-label="Borrar sesión"
-                        title="Borrar"
+                        aria-label="Delete session"
+                        title="Delete"
                       >
                         ✕
                       </button>

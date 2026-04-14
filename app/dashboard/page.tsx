@@ -3,12 +3,12 @@ import { getKpis, getSegments, getCampaigns, getMessages, type MessageRow } from
 import type { UseCaseKey, UseCaseBreakdown } from '@/lib/dashboard-types';
 
 const USE_CASE_LABEL: Record<UseCaseKey, string> = {
-  reactivation: 'Reactivación',
-  post_visit: 'Post-visita',
-  second_visit: 'Primera → Segunda',
-  event: 'Eventos',
-  fill_tables: 'Llenar mesas',
-  other: 'Otras',
+  reactivation: 'Reactivation',
+  post_visit: 'Post-visit',
+  second_visit: 'First → Second',
+  event: 'Events',
+  fill_tables: 'Fill tables',
+  other: 'Other',
 };
 
 function classifyUseCase(campaignName: string): UseCaseKey {
@@ -60,13 +60,13 @@ function buildActivityTicker(messages: MessageRow[]): string[] {
     .slice(0, 7)
     .map((m) => {
       const mins = Math.max(1, Math.round((now - new Date(m.created_at).getTime()) / 60_000));
-      const when = mins < 60 ? `HACE ${mins} MIN` : `HACE ${Math.round(mins / 60)} H`;
+      const when = mins < 60 ? `${mins} MIN AGO` : `${Math.round(mins / 60)} H AGO`;
       const evento =
         m.status === 'converted'
-          ? `CONVIRTIÓ +$${Math.round((m.realized_revenue ?? 0) / 1000)}K`
+          ? `CONVERTED +$${Math.round((m.realized_revenue ?? 0) / 1000)}K`
           : m.status === 'responded'
-            ? 'RESPUESTA POSITIVA'
-            : 'PENDIENTE DE APROBACIÓN';
+            ? 'POSITIVE REPLY'
+            : 'PENDING APPROVAL';
       return `${m.guest_name.toUpperCase()} · ${evento} · ${when}`;
     });
 }

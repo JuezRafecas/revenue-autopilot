@@ -15,9 +15,9 @@ import { emptyMetrics } from './campaigns';
  */
 
 export const MOCK_RESTAURANT = {
-  id: 'r_fabric_sushi',
-  name: 'Fabric Sushi',
-  slug: 'fabric-sushi',
+  id: 'r_la_cabrera',
+  name: 'La Cabrera',
+  slug: 'la-cabrera',
   total_guests: 612,
   avg_ticket: 45000,
   currency: 'ARS',
@@ -218,11 +218,11 @@ export const MOCK_CAMPAIGNS: Campaign[] = [
     completed_at: null,
   },
   {
-    id: 'c_event_gardiner',
+    id: 'c_event_mallmann',
     restaurant_id: MOCK_RESTAURANT.id,
     template_key: 'promote_event',
     type: 'one_shot',
-    name: 'Fabric × Gardiner',
+    name: 'La Cabrera × Francis Mallmann',
     description: 'Menú de 5 pasos con chef invitado — 20 de abril',
     status: 'scheduled',
     audience_filter: {
@@ -303,9 +303,9 @@ export const MOCK_MESSAGES: Array<
   {
     id: 'm6',
     guest_name: 'Martín Álvarez',
-    campaign_name: 'Fabric × Gardiner',
+    campaign_name: 'La Cabrera × Francis Mallmann',
     channel: 'whatsapp_then_email',
-    content: 'Martín, el 20 de abril tenemos a Seba Tricarico en la cocina. Te guardamos…',
+    content: 'Martín, el 20 de abril tenemos a Francis Mallmann en la cocina. Te guardamos…',
     status: 'pending_approval',
     created_at: '2026-04-14T07:30:00Z',
     realized_revenue: null,
@@ -392,8 +392,8 @@ export const MOCK_ATTRIBUTIONS: AttributionSummary[] = [
     rate: 0.19,
   },
   {
-    campaign_id: 'c_event_gardiner',
-    campaign_name: 'Fabric × Gardiner',
+    campaign_id: 'c_event_mallmann',
+    campaign_name: 'La Cabrera × Francis Mallmann',
     template_key: 'promote_event',
     messages_sent: 0,
     conversions: 0,

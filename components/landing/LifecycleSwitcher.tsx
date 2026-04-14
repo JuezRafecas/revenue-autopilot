@@ -53,7 +53,7 @@ export function LifecycleSection() {
           data-reveal-delay="2"
           className="flex flex-col gap-3"
           role="tablist"
-          aria-label="Estados del ciclo de vida del cliente"
+          aria-label="Guest lifecycle states"
         >
           {SEGMENT_ORDER.map((seg) => {
             const c = SEGMENT_CONFIG[seg];
@@ -109,7 +109,7 @@ export function LifecycleSection() {
                     style={{ background: hex, boxShadow: '0 0 0 2px #151411' }}
                   />
                   <span className="k-mono text-[10px] uppercase tracking-[0.16em] text-[#8a8782]">
-                    Estado · {config.key}
+                    State · {config.key}
                   </span>
                 </div>
                 <span
@@ -145,7 +145,7 @@ export function LifecycleSection() {
               <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-[#e4dfd2]">
                 <div>
                   <div className="k-mono text-[9.5px] uppercase tracking-[0.18em] text-[#8a8782] mb-2">
-                    Qué hace Nomi
+                    What Nomi does
                   </div>
                   <div className="text-[15px] leading-snug text-[#151411]">
                     {demo.action}
@@ -153,7 +153,7 @@ export function LifecycleSection() {
                 </div>
                 <div>
                   <div className="k-mono text-[9.5px] uppercase tracking-[0.18em] text-[#8a8782] mb-2">
-                    Métrica de éxito
+                    Success metric
                   </div>
                   <div className="text-[15px] leading-snug text-[#151411]">
                     {demo.metric}
@@ -163,7 +163,7 @@ export function LifecycleSection() {
 
               <div className="mt-8 pt-6 border-t border-[#e4dfd2]">
                 <div className="k-mono text-[9.5px] uppercase tracking-[0.18em] text-[#8a8782] mb-3">
-                  Ejemplo ilustrativo
+                  Illustrative example
                 </div>
                 <div className="flex items-center gap-4">
                   <div
@@ -201,7 +201,7 @@ export function LifecycleSection() {
               aria-hidden
               className="absolute -bottom-8 right-0 k-mono text-[9px] uppercase tracking-[0.18em] text-[#8a8782]"
             >
-              auto-advance · click para explorar
+              auto-advance · click to explore
             </div>
           )}
         </div>

@@ -41,23 +41,23 @@ export function MandamientosCTASection() {
         className="mt-24 pt-16 border-t border-[#e4dfd2] flex flex-col lg:flex-row items-start lg:items-end justify-between gap-10"
       >
         <div className="max-w-[38ch]">
-          <div className="k-eyebrow mb-4">Listo para ver el sistema</div>
+          <div className="k-eyebrow mb-4">Ready to see the system</div>
           <h3 className="k-display-lg">
-            Dejá de mandar campañas.
+            Stop blasting campaigns.
             {'\n'}
-            Empezá a recuperar clientes.
+            Start bringing guests back.
           </h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-5">
           <Link href="/dashboard">
             <KaszekButton variant="primary">
-              Ver el diagnóstico
+              See the diagnosis
               <Arrow />
             </KaszekButton>
           </Link>
           <Link href="/hub">
-            <KaszekButton variant="ghost">Hablar con Nomi</KaszekButton>
+            <KaszekButton variant="ghost">Talk to Nomi</KaszekButton>
           </Link>
         </div>
       </div>

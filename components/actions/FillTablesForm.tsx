@@ -5,18 +5,18 @@ import { Button } from '@/components/ui/Button';
 import { Label } from '@/components/ui/Label';
 
 const DAYS = [
-  { key: 'monday', label: 'Lunes' },
-  { key: 'tuesday', label: 'Martes' },
-  { key: 'wednesday', label: 'Miércoles' },
-  { key: 'thursday', label: 'Jueves' },
-  { key: 'friday', label: 'Viernes' },
-  { key: 'saturday', label: 'Sábado' },
-  { key: 'sunday', label: 'Domingo' },
+  { key: 'monday', label: 'Monday' },
+  { key: 'tuesday', label: 'Tuesday' },
+  { key: 'wednesday', label: 'Wednesday' },
+  { key: 'thursday', label: 'Thursday' },
+  { key: 'friday', label: 'Friday' },
+  { key: 'saturday', label: 'Saturday' },
+  { key: 'sunday', label: 'Sunday' },
 ];
 
 const SHIFTS = [
-  { key: 'lunch', label: 'Almuerzo' },
-  { key: 'dinner', label: 'Cena' },
+  { key: 'lunch', label: 'Lunch' },
+  { key: 'dinner', label: 'Dinner' },
 ];
 
 export function FillTablesForm({
@@ -35,18 +35,18 @@ export function FillTablesForm({
       }}
       className="border border-hairline p-12 bg-bg-raised"
     >
-      <Label className="mb-3">Llenar mesas</Label>
+      <Label className="mb-3">Fill tables</Label>
       <h2
         className="font-display text-[clamp(2rem,4vw,3.5rem)] leading-[0.98] text-fg mb-12 max-w-[20ch]"
         style={{ fontVariationSettings: '"opsz" 144, "SOFT" 50' }}
       >
-        <span className="italic">¿Qué mesa</span> querés{' '}
-        <span className="text-accent not-italic">llenar</span>?
+        <span className="italic">Which table</span> do you want to{' '}
+        <span className="text-accent not-italic">fill</span>?
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
-          <Label className="mb-3">Día</Label>
+          <Label className="mb-3">Day</Label>
           <div className="grid grid-cols-2 gap-2">
             {DAYS.map((d) => (
               <button
@@ -66,7 +66,7 @@ export function FillTablesForm({
         </div>
 
         <div>
-          <Label className="mb-3">Horario</Label>
+          <Label className="mb-3">Shift</Label>
           <div className="grid grid-cols-1 gap-2">
             {SHIFTS.map((s) => (
               <button
@@ -91,10 +91,10 @@ export function FillTablesForm({
           className="font-display italic text-sm text-fg-muted max-w-[40ch]"
           style={{ fontVariationSettings: '"opsz" 14' }}
         >
-          buscaremos comensales con alta probabilidad de aceptar una invitación para ese día.
+          we'll find guests with a high likelihood of accepting an invitation for that day.
         </p>
         <Button variant="primary" size="lg" type="submit">
-          Buscar matches
+          Find matches
         </Button>
       </div>
     </form>

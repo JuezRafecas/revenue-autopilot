@@ -7,8 +7,8 @@ import { SEGMENT_HEX } from '@/lib/constants';
 import type { CampaignTemplate } from '@/lib/types';
 
 const TYPE_LABEL = {
-  automation: 'Automación',
-  one_shot: 'Puntual',
+  automation: 'Automation',
+  one_shot: 'One-off',
 } as const;
 
 export function TemplateCard({
@@ -57,7 +57,7 @@ export function TemplateCard({
         </p>
 
         <div className="mt-auto pt-6 border-t border-hairline">
-          <Label className="mb-3">KPIs que optimiza</Label>
+          <Label className="mb-3">KPIs optimized</Label>
           <ul className="space-y-1">
             {template.kpi_labels.map((kpi) => (
               <li
@@ -92,7 +92,7 @@ export function TemplateCard({
               className="inline-block w-1.5 h-1.5 rounded-full transition-transform group-hover/cta:scale-125"
               style={{ background: hex }}
             />
-            Usar plantilla
+            Use template
           </span>
           <span className="transition-transform group-hover/cta:translate-x-0.5">→</span>
         </Link>

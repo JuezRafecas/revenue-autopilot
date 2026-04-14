@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { Opportunity } from '@/lib/agent/types';
 import { OpportunityChip } from './OpportunityChip';
 
@@ -7,14 +8,21 @@ interface OpportunityStripProps {
   opportunities: Opportunity[];
   currency: string;
   error: string | null;
+  collapsed?: boolean;
 }
 
 export function OpportunityStrip({
   opportunities,
   currency,
   error,
+  collapsed = false,
 }: OpportunityStripProps) {
   const visible = opportunities.slice(0, 3);
+  const [expanded, setExpanded] = useState(!collapsed);
+
+  useEffect(() => {
+    setExpanded(!collapsed);
+  }, [collapsed]);
 
   if (error) {
     return (
@@ -30,7 +38,7 @@ export function OpportunityStrip({
           className="k-label mb-1"
           style={{ color: 'var(--accent-dim)', fontSize: 9.5 }}
         >
-          No pude leer tu CDP
+          Couldn't read your CDP
         </div>
         <p
           className="k-italic-serif"
@@ -44,20 +52,96 @@ export function OpportunityStrip({
 
   if (visible.length === 0) return null;
 
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-2.5">
+  if (!expanded) {
+    const headlines = visible.map((o) => o.headline).join(' · ');
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className="w-full flex items-center gap-3 px-4 transition-colors"
+        style={{
+          border: '1px solid var(--hairline-strong)',
+          background: 'var(--bg-raised)',
+          height: 44,
+          textAlign: 'left',
+          cursor: 'pointer',
+        }}
+        aria-label="Show opportunities"
+      >
         <SparkleIcon />
-        <div
-          className="k-label"
+        <span
+          className="k-label shrink-0"
           style={{
             color: 'var(--k-green)',
             fontSize: 9.5,
             letterSpacing: '0.16em',
           }}
         >
-          {visible.length} oportunidad{visible.length === 1 ? '' : 'es'} que Nomi detectó
+          {visible.length} opportunit{visible.length === 1 ? 'y' : 'ies'}
+        </span>
+        <span
+          className="truncate min-w-0 flex-1"
+          style={{
+            fontFamily:
+              'var(--font-kaszek-sans), Inter, -apple-system, sans-serif',
+            fontSize: 12,
+            color: 'var(--fg-muted)',
+            letterSpacing: '-0.005em',
+          }}
+        >
+          {headlines}
+        </span>
+        <span
+          className="k-mono shrink-0"
+          style={{
+            fontSize: 9.5,
+            letterSpacing: '0.14em',
+            color: 'var(--fg-subtle)',
+            textTransform: 'uppercase',
+          }}
+        >
+          ▾ Show
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="flex items-center gap-2">
+          <SparkleIcon />
+          <div
+            className="k-label"
+            style={{
+              color: 'var(--k-green)',
+              fontSize: 9.5,
+              letterSpacing: '0.16em',
+            }}
+          >
+            {visible.length} opportunit{visible.length === 1 ? 'y' : 'ies'} Nomi detected
+          </div>
         </div>
+        {collapsed && (
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="k-mono"
+            style={{
+              fontSize: 9.5,
+              letterSpacing: '0.14em',
+              color: 'var(--fg-subtle)',
+              textTransform: 'uppercase',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 6px',
+            }}
+            aria-label="Hide opportunities"
+          >
+            ▴ Hide
+          </button>
+        )}
       </div>
 
       <div

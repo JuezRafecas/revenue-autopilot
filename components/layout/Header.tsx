@@ -1,12 +1,12 @@
 interface HeaderProps {
   title?: string;
   subtitle?: string;
-  /** Show the "Live · Hoy" pulse pill. Defaults to true on live routes. */
+  /** Show the "Live · Today" pulse pill. Defaults to true on live routes. */
   live?: boolean;
 }
 
 export function Header({ title, subtitle, live = true }: HeaderProps) {
-  const today = new Date().toLocaleDateString('es-AR', {
+  const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -20,7 +20,7 @@ export function Header({ title, subtitle, live = true }: HeaderProps) {
     <header style={{ borderBottom: '1.5px solid var(--fg)' }}>
       <div className="editorial-container flex flex-wrap items-center justify-between gap-3 py-5">
         <div className="flex items-center gap-4 min-w-0">
-          {live && <span className="k-event-pill shrink-0">Live · Hoy</span>}
+          {live && <span className="k-event-pill shrink-0">Live · Today</span>}
           {title && (
             <div className="min-w-0">
               <div
@@ -31,7 +31,7 @@ export function Header({ title, subtitle, live = true }: HeaderProps) {
                   fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
                 }}
               >
-                {subtitle ?? 'Diagnóstico'}
+                {subtitle ?? 'Diagnosis'}
               </div>
               <h1
                 className="text-[22px] leading-tight truncate"

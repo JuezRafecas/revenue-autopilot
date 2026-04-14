@@ -14,7 +14,7 @@ export function ChannelStats() {
     <div className="w-full">
       <div className="k-divider-rule mb-8">
         <span className="k-mono text-[10px] uppercase tracking-[0.18em] text-[#8a8782]">
-          Canales · por qué Nomi elige WhatsApp y Voice
+          Channels · why Nomi picks WhatsApp and Voice
         </span>
       </div>
 

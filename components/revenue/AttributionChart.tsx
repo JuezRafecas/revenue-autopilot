@@ -33,10 +33,10 @@ export function AttributionChart({ rows, height = 320 }: Props) {
     <div className="border border-hairline bg-bg-raised p-8">
       <div className="flex items-center justify-between mb-6">
         <div className="text-[10px] uppercase tracking-label text-fg-subtle">
-          Revenue por campaña
+          Revenue by campaign
         </div>
         <div className="text-[10px] uppercase tracking-label text-fg-subtle">
-          últimos 30 días
+          last 30 days
         </div>
       </div>
       <ResponsiveContainer width="100%" height={height}>

@@ -34,7 +34,7 @@ export default async function CampaignDetailPage({
           href="/campaigns"
           className="inline-block font-mono text-[10px] uppercase tracking-label text-fg-subtle hover:text-fg mb-10"
         >
-          ← Todas las campañas
+          ← All campaigns
         </Link>
 
         <div className="flex items-start justify-between gap-8 mb-6">
@@ -42,7 +42,7 @@ export default async function CampaignDetailPage({
             <div className="flex items-center gap-4 mb-3">
               <CampaignStatusBadge status={campaign.status} animated />
               <span className="text-[10px] uppercase tracking-label text-fg-subtle">
-                {campaign.type === 'automation' ? 'Automación' : 'Campaña puntual'}
+                {campaign.type === 'automation' ? 'Automation' : 'One-shot campaign'}
               </span>
               {tpl && (
                 <span className="text-[10px] uppercase tracking-label text-fg-subtle">
@@ -68,13 +68,13 @@ export default async function CampaignDetailPage({
 
           <div className="shrink-0 flex items-center gap-3 pt-4">
             {campaign.status === 'active' ? (
-              <Button variant="ghost">Pausar</Button>
+              <Button variant="ghost">Pause</Button>
             ) : campaign.status === 'scheduled' ? (
-              <Button variant="primary">Lanzar ahora</Button>
+              <Button variant="primary">Launch now</Button>
             ) : (
-              <Button variant="primary">Activar</Button>
+              <Button variant="primary">Activate</Button>
             )}
-            <Button variant="link">Duplicar</Button>
+            <Button variant="link">Duplicate</Button>
           </div>
         </div>
       </section>
@@ -82,10 +82,10 @@ export default async function CampaignDetailPage({
       {/* KPI row */}
       <section className="editorial-container pb-12">
         <div className="grid grid-cols-2 md:grid-cols-5 border-y border-hairline">
-          <Metric label="Enviados" value={campaign.metrics.sent} />
-          <Metric label="Leídos" value={Math.round(campaign.metrics.read_rate * 100)} suffix="%" />
-          <Metric label="Respondidos" value={Math.round(campaign.metrics.response_rate * 100)} suffix="%" />
-          <Metric label="Convirtieron" value={campaign.metrics.converted} />
+          <Metric label="Sent" value={campaign.metrics.sent} />
+          <Metric label="Read" value={Math.round(campaign.metrics.read_rate * 100)} suffix="%" />
+          <Metric label="Replied" value={Math.round(campaign.metrics.response_rate * 100)} suffix="%" />
+          <Metric label="Converted" value={campaign.metrics.converted} />
           <Metric
             label="Revenue"
             value={campaign.metrics.revenue_attributed}
@@ -111,27 +111,27 @@ export default async function CampaignDetailPage({
             matchedCount={Math.max(50, campaign.metrics.sent)}
             tierBreakdown={[
               { label: 'VIP', count: Math.round(Math.max(50, campaign.metrics.sent) * 0.18) },
-              { label: 'Frecuentes', count: Math.round(Math.max(50, campaign.metrics.sent) * 0.42) },
-              { label: 'Ocasionales', count: Math.round(Math.max(50, campaign.metrics.sent) * 0.40) },
+              { label: 'Frequent', count: Math.round(Math.max(50, campaign.metrics.sent) * 0.42) },
+              { label: 'Occasional', count: Math.round(Math.max(50, campaign.metrics.sent) * 0.40) },
             ]}
           />
 
           <div>
-            <Label className="mb-3">Ejemplo de mensaje</Label>
-            <MessagePreview message={sampleMessage || 'Ejemplo generado a partir del template.'} />
+            <Label className="mb-3">Message example</Label>
+            <MessagePreview message={sampleMessage || 'Example generated from the template.'} />
           </div>
 
           <div className="border border-hairline bg-bg-raised p-6">
-            <Label className="mb-3">Detalles</Label>
+            <Label className="mb-3">Details</Label>
             <dl className="space-y-3 text-[12px]">
-              <Row label="Creada" value={new Date(campaign.created_at).toLocaleDateString('es-AR')} />
+              <Row label="Created" value={new Date(campaign.created_at).toLocaleDateString('en-US')} />
               {campaign.started_at && (
-                <Row label="Iniciada" value={new Date(campaign.started_at).toLocaleDateString('es-AR')} />
+                <Row label="Started" value={new Date(campaign.started_at).toLocaleDateString('en-US')} />
               )}
-              <Row label="Canales" value={campaign.channels.join(', ')} />
-              <Row label="Audiencia" value={describeAudience(campaign.audience_filter)} />
+              <Row label="Channels" value={campaign.channels.join(', ')} />
+              <Row label="Audience" value={describeAudience(campaign.audience_filter)} />
               {campaign.estimated_revenue && (
-                <Row label="Revenue estimado" value={formatARS(campaign.estimated_revenue)} accent />
+                <Row label="Estimated revenue" value={formatARS(campaign.estimated_revenue)} accent />
               )}
             </dl>
           </div>

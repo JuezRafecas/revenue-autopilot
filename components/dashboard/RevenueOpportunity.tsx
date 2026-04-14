@@ -41,7 +41,7 @@ export function RevenueOpportunity({
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Plata esperando
+            Money on the table
           </div>
           <div
             className="k-digit-outlined tabular-nums"
@@ -59,11 +59,11 @@ export function RevenueOpportunity({
               color: 'var(--fg-muted)',
             }}
           >
-            recuperable en los próximos 90 días si se acciona sobre los{' '}
+            recoverable over the next 90 days if we act on the{' '}
             <span style={{ color: 'var(--fg)', fontStyle: 'normal', fontWeight: 600 }}>
               {dormantCount}
             </span>{' '}
-            comensales que dejaron de venir. Ticket promedio{' '}
+            guests who stopped coming. Average ticket{' '}
             <span
               className="font-mono"
               style={{ fontStyle: 'normal', fontSize: '0.8em', color: 'var(--fg)' }}
@@ -89,7 +89,7 @@ export function RevenueOpportunity({
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Activar reactivación
+            Start reactivation
             <span>→</span>
           </button>
         </div>
@@ -105,7 +105,7 @@ export function RevenueOpportunity({
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Revenue por caso de uso · 30d
+            Revenue by use case · 30d
           </div>
           <ul
             role="list"
@@ -136,10 +136,10 @@ export function RevenueOpportunity({
                   </div>
                 </div>
                 <div className="flex items-baseline gap-6 md:contents">
-                  <BreakdownStat value={b.sent} label="enviados" />
+                  <BreakdownStat value={b.sent} label="sent" />
                   <BreakdownStat
                     value={b.conversions}
-                    label={b.key === 'post_visit' ? '2das visitas' : 'conversiones'}
+                    label={b.key === 'post_visit' ? '2nd visits' : 'conversions'}
                   />
                 </div>
                 <div className="hidden md:block text-right">

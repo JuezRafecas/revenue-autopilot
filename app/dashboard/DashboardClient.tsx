@@ -51,22 +51,22 @@ export function DashboardClient({
 
   const kpiEntries = [
     {
-      label: 'Reactivados · 30d',
+      label: 'Reactivated · 30d',
       value: counts.reactivated,
       animated: true,
     },
     {
-      label: 'Visitas recuperadas · 30d',
+      label: 'Visits recovered · 30d',
       value: counts.visitsRecovered,
       animated: true,
     },
     {
-      label: 'Tasa de aprobación',
+      label: 'Approval rate',
       value: counts.approvalRate,
       format: 'percent' as const,
     },
     {
-      label: 'Revenue atribuido · 30d',
+      label: 'Revenue attributed · 30d',
       value: kpis.revenue_attributed_30d,
       format: 'ars' as const,
       animated: true,
@@ -79,12 +79,12 @@ export function DashboardClient({
   const healthSeries = pseudoSeries('health', kpis.base_health_score, 30, 0.12);
   const healthDiagnosis =
     kpis.base_health_score < 25
-      ? 'la base está en estado crítico: la mayoría no vuelve.'
+      ? 'the base is critical: most guests never return.'
       : kpis.base_health_score < 50
-        ? 'uno de cada dos comensales se está yendo por la puerta.'
+        ? 'one in two guests is walking out the door.'
         : kpis.base_health_score < 75
-          ? 'la base funciona, pero hay una bolsa grande de revenue dormido.'
-          : 'la base está saludable — foco en potenciar VIPs.';
+          ? 'the base works, but there is a large pool of dormant revenue.'
+          : 'the base is healthy — focus on leveling up VIPs.';
 
   return (
     <AppShell pendingCount={counts.pending}>
@@ -129,7 +129,7 @@ export function DashboardClient({
       <section className="pb-20">
         <div className="editorial-container flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
           <div>
-            <SectionLabel className="mb-2">Automaciones activas</SectionLabel>
+            <SectionLabel className="mb-2">Active automations</SectionLabel>
             <h2
               style={{
                 fontFamily: 'var(--font-kaszek-display), "Archivo Black", system-ui, sans-serif',
@@ -140,7 +140,7 @@ export function DashboardClient({
                 lineHeight: 1.05,
               }}
             >
-              Lo que está corriendo ahora mismo.
+              What is running right now.
             </h2>
           </div>
           <Link
@@ -153,7 +153,7 @@ export function DashboardClient({
               fontFamily: 'var(--font-kaszek-sans), Inter, system-ui, sans-serif',
             }}
           >
-            Ver todas
+            View all
             <span>→</span>
           </Link>
         </div>

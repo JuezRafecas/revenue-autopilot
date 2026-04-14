@@ -31,12 +31,17 @@ export interface NomiChatHandle {
 interface NomiChatProps {
   handleRef?: React.RefObject<NomiChatHandle | null>;
   currency?: string;
+  onEngagedChange?: (engaged: boolean) => void;
 }
 
 const SANS_STACK =
   'var(--font-kaszek-sans), Inter, -apple-system, "Helvetica Neue", sans-serif';
 
-export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
+export function NomiChat({
+  handleRef,
+  currency = 'ARS',
+  onEngagedChange,
+}: NomiChatProps) {
   const transport = useRef(
     new DefaultChatTransport({ api: '/api/agent/chat' })
   );
@@ -87,6 +92,10 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
     if (!el) return;
     el.scrollTop = el.scrollHeight;
   }, [messages, status]);
+
+  useEffect(() => {
+    onEngagedChange?.(messages.length > 0);
+  }, [messages.length, onEngagedChange]);
 
   const autoresize = useCallback(() => {
     const el = textareaRef.current;
@@ -181,7 +190,7 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
               letterSpacing: '-0.005em',
             }}
           >
-            {activeSession?.title ?? 'Nueva conversación'}
+            {activeSession?.title ?? 'New conversation'}
           </div>
         </div>
         <StatusPill status={status} isBusy={isBusy} />
@@ -189,17 +198,22 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-6 py-5"
+        className="flex-1 overflow-y-auto px-7 py-6"
         aria-live="polite"
         style={{ minHeight: 0, scrollbarGutter: 'stable' }}
       >
-        {messages.length === 0 ? <EmptyChat /> : null}
+        {messages.length === 0 ? (
+          <EmptyChat
+            onPickPrompt={(p) => sendMessage({ text: p })}
+            disabled={isBusy}
+          />
+        ) : null}
         {messages.map((message) => (
           <MessageRow key={message.id} message={message} currency={currency} />
         ))}
         {showBottomThinking && (
           <div className="py-2">
-            <ThinkingSparkle label="nomi está pensando" />
+            <ThinkingSparkle label="nomi is thinking" />
           </div>
         )}
         {error && (
@@ -223,7 +237,9 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
         className="shrink-0"
         style={{ borderTop: '1px solid var(--hairline)' }}
       >
-        <div className="px-5 pt-4 pb-2">
+        <div
+          className="px-5 py-3 flex items-end gap-3"
+        >
           <textarea
             ref={textareaRef}
             value={input}
@@ -231,11 +247,11 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
               setInput(e.target.value);
             }}
             onKeyDown={onKey}
-            placeholder="Preguntale a Nomi… (Enter para enviar, Shift+Enter para salto de línea)"
+            placeholder="Ask Nomi… (Enter to send, Shift+Enter for newline)"
             disabled={isBusy}
-            aria-label="Preguntale a Nomi"
+            aria-label="Ask Nomi"
             rows={1}
-            className="w-full resize-none bg-transparent focus:outline-none nomi-textarea"
+            className="flex-1 resize-none bg-transparent focus:outline-none nomi-textarea"
             style={{
               fontFamily: SANS_STACK,
               fontStyle: 'normal',
@@ -245,20 +261,9 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
               lineHeight: 1.5,
               minHeight: 24,
               maxHeight: 140,
-              padding: 0,
+              padding: '4px 0',
               letterSpacing: '-0.005em',
             }}
-          />
-        </div>
-        <div
-          className="px-5 py-3 flex items-center justify-between gap-4"
-          style={{ borderTop: '1px solid var(--hairline)' }}
-        >
-          <QuickPrompts
-            onPick={(p) => {
-              sendMessage({ text: p });
-            }}
-            disabled={isBusy}
           />
           {isBusy ? (
             <button
@@ -276,7 +281,7 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
                 cursor: 'pointer',
               }}
             >
-              Parar
+              Stop
             </button>
           ) : (
             <button
@@ -296,7 +301,7 @@ export function NomiChat({ handleRef, currency = 'ARS' }: NomiChatProps) {
                 cursor: input.trim() ? 'pointer' : 'not-allowed',
               }}
             >
-              Enviar
+              Send
               <span aria-hidden>↵</span>
             </button>
           )}
@@ -325,7 +330,7 @@ function StatusPill({
 }) {
   if (isBusy) {
     return (
-      <ThinkingSparkle label={status === 'submitted' ? 'pensando' : 'escribiendo'} />
+      <ThinkingSparkle label={status === 'submitted' ? 'thinking' : 'typing'} />
     );
   }
   const ok = status !== 'error';
@@ -354,34 +359,47 @@ function StatusPill({
             : '0 0 0 3px rgba(230,120,76,0.2)',
         }}
       />
-      {ok ? 'Listo' : 'Error'}
+      {ok ? 'Ready' : 'Error'}
     </div>
   );
 }
 
-function EmptyChat() {
+function EmptyChat({
+  onPickPrompt,
+  disabled,
+}: {
+  onPickPrompt: (prompt: string) => void;
+  disabled?: boolean;
+}) {
   return (
-    <div className="flex flex-col gap-2 pb-3">
-      <div
-        className="k-label"
-        style={{ color: 'var(--k-green)' }}
-      >
-        Nomi
+    <div className="flex flex-col gap-5 pb-3">
+      <div className="flex flex-col gap-2">
+        <div
+          className="k-label"
+          style={{ color: 'var(--k-green)' }}
+        >
+          Nomi
+        </div>
+        <p
+          style={{
+            fontFamily: SANS_STACK,
+            fontSize: 14.5,
+            lineHeight: 1.6,
+            color: 'var(--fg-muted)',
+            maxWidth: 560,
+            letterSpacing: '-0.005em',
+          }}
+        >
+          Hi. I'm your CMO — while you run the floor, I watch every guest and
+          know who's coming back, who's gone, and how much money is on the
+          table.
+        </p>
       </div>
-      <p
-        style={{
-          fontFamily: SANS_STACK,
-          fontSize: 14.5,
-          lineHeight: 1.6,
-          color: 'var(--fg-muted)',
-          maxWidth: 520,
-          letterSpacing: '-0.005em',
-        }}
-      >
-        Hola. Soy tu CMO — mientras vos atendés el salón, yo miro a cada
-        comensal y sé quién vuelve, quién se fue y cuánta plata hay sobre la
-        mesa.
-      </p>
+      <QuickPrompts
+        variant="hero"
+        onPick={onPickPrompt}
+        disabled={disabled}
+      />
     </div>
   );
 }
@@ -420,7 +438,7 @@ function MessageRow({
               color: 'var(--fg-subtle)',
             }}
           >
-            Tú
+            You
           </div>
           <div
             style={{
@@ -509,35 +527,35 @@ type ToolCallBadgeState =
   | 'output-error';
 
 function truncateError(msg: string | undefined): string {
-  if (!msg) return 'Algo falló.';
+  if (!msg) return 'Something went wrong.';
   const cleaned = msg.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   if (cleaned.length > 140) return cleaned.slice(0, 140) + '…';
-  return cleaned || 'Algo falló.';
+  return cleaned || 'Something went wrong.';
 }
 
 function summarizeToolResult(toolName: string, output: unknown): string | undefined {
   if (!output || typeof output !== 'object') return undefined;
   const o = output as Record<string, unknown>;
   if (toolName === 'queryCustomers' && typeof o.count === 'number') {
-    return `${o.count} resultados`;
+    return `${o.count} results`;
   }
   if (toolName === 'estimateAudienceSize' && typeof o.count === 'number') {
-    return `${o.count} clientes`;
+    return `${o.count} guests`;
   }
   if (toolName === 'detectOpportunities' && Array.isArray(o.opportunities)) {
-    return `${o.opportunities.length} oportunidades`;
+    return `${o.opportunities.length} opportunities`;
   }
   if (toolName === 'getSegmentMetrics' && Array.isArray(o.rows)) {
-    return `${o.rows.length} segmentos`;
+    return `${o.rows.length} segments`;
   }
   if (toolName === 'listTemplates' && Array.isArray(o.templates)) {
     return `${o.templates.length} templates`;
   }
   if (toolName === 'getCampaignResults' && Array.isArray(o.campaigns)) {
-    return `${o.campaigns.length} campañas`;
+    return `${o.campaigns.length} campaigns`;
   }
   if (toolName === 'draftCampaign' && o.draft) {
-    return 'borrador listo';
+    return 'draft ready';
   }
   return undefined;
 }
