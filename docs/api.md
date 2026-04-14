@@ -43,6 +43,12 @@ Antes de diseñar, vale entender qué data cruda tenemos. Los CSVs bajo el root 
 - **Canales**: `SHARED_LINK`, `SEARCH_ENGINE`, `QUICK_ADD`, `MARKETPLACE`, `CONSUMER_DIRECT`, `VENUE_STAFF`.
 - **Campos útiles**: `visit_id`, `partner_id`, `party_size`, `sector_name`, `channel`, `platform`, `state`, `visited_at`, `has_guarantee`, `guarantee_amount`, `shift_id`, `cancelled_by`, `cancelled_at`, `confirmed_at`, `accepted_at`.
 - **Campos vacíos en 100% de la muestra** (ignorar en el mapeo): `score`, `review_*`, `guest_comment`, `venue_comment`, `tags`, `arrived_at`, `departed_at`, `discount_percentage`, `no_show_at`, `rejected_at`.
+- **⚠ No hay columna de guest**. El visit CSV no trae `guest_id` ni `guest_partner_id`. El único vínculo visit ↔ guest vive en los JSON embebidos de `guest_partner`:
+  - `guarantee_insights.bookings[].visitId`
+  - `cancellation_insights.cancellations[].visitId`
+  - `review_insights.reviews[].visitId` (vacío en la muestra)
+
+  Cualquier flujo que necesite "las visitas de este guest" tiene que resolverse desde esos arrays, no desde un JOIN directo.
 
 Mapeo a `visits`:
 
@@ -99,33 +105,52 @@ Cada entidad mapea 1:1 a una tabla de Supabase y a un type en [`lib/types.ts`](.
 
 Tabla: `restaurants`.
 
-### 2.2 `Guest`
+### 2.2 `GuestPartner` (unidad real)
+
+La entidad `Guest` pelada (persona física cross-tenant) **no es una entidad de primer orden en este producto**. Lo que importa es la relación **guest × partner** — la misma persona en distintos restaurantes son filas distintas, y todas las métricas, segmento y acciones se calculan en ese scope. El CSV `la_cabrera_guest_partner.csv` es literalmente esa unidad.
+
+A nivel DB vive en la tabla `guests` (manteniendo el nombre legado para no romper el schema), con los campos que hay que sumar para reflejar el modelo:
 
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` | uuid | PK |
-| `restaurant_id` | uuid | FK → `restaurants` |
-| `name` | string | |
+| `id` | uuid | PK interna |
+| `guest_partner_id` | text | External ID del CSV (hash tipo `CC5AB85BC1790384FA650EF5306B3414`). Unique por `restaurant_id`. **A agregar** al schema. |
+| `restaurant_id` | uuid | FK → `restaurants` — el "partner" del guest_partner |
+| `name` | string | `guest_name` del CSV |
+| `email` | string \| null | `guest_email` del CSV |
 | `phone` | string \| null | Casi siempre `null` con la data de La Cabrera |
-| `email` | string \| null | |
+| `language` | string \| null | `guest_language` |
 | `opt_in_whatsapp` | boolean | Default `true` |
 | `opt_in_email` | boolean | Default `true` |
+| `partner_tags` | string[] | |
+| `special_relationship` | string \| null | |
+| `food_restrictions` | string \| null | |
+| `is_banned` | boolean | |
 
-Tabla: `guests`.
+Tabla: `guests` (renombrado conceptualmente a GuestPartner; opcional: agregar `guest_partner_id` como columna unique).
+
+> **Naming**: en los paths de la API usamos `guest_partner` / `guest-partners`. A nivel TS podemos seguir llamando a la interfaz `Guest` en `lib/types.ts` (sin forzar un rename del tipo) pero el modelo mental y la documentación hablan de `GuestPartner`.
 
 ### 2.3 `Visit`
 
+El visit NO tiene columna de guest en el CSV. El vínculo con el `GuestPartner` se resuelve siempre via los `visitId` de los insights (ver §1). En DB tenemos dos opciones:
+
+1. **Ingestión eager** (recomendado): al importar el `guest_partner_file`, recorremos los insights y construimos un map `{ external_visit_id → guest_partner_id }`. Al insertar cada visit desde `visit_file` ponemos `guest_id` con el lookup. Visits sin match quedan con `guest_id = null` (son visitas que no aparecen en ningún bookings[]/cancellations[]).
+2. **Resolución lazy** (fallback): si no hay tiempo para la indexación eager, dejamos `guest_id = null` siempre y el endpoint de visitas por guest-partner (§3.2) resuelve sobre la marcha leyendo los insights y haciendo `visits.where('external_visit_id').in(...)`.
+
 | Campo | Tipo | Notas |
 |---|---|---|
-| `id` | uuid | PK |
-| `guest_id` | uuid | FK → `guests` |
+| `id` | uuid | PK interna |
+| `external_visit_id` | text | El `visit_id` del CSV (MongoDB ObjectId-style: `69b03705dc7dc47bd1858838`). Unique. **A agregar** al schema — es la única key compartida entre el CSV de visits y los insights del guest_partner. |
+| `guest_id` | uuid \| null | FK → `guests`. Nullable porque no toda visit está linkeada a un guest_partner via insights. |
 | `restaurant_id` | uuid | FK → `restaurants` |
-| `visit_date` | ISO string | |
+| `visit_date` | ISO string | `visited_at` del CSV |
 | `party_size` | number | |
 | `amount` | number \| null | ARS. `null` cuando no hay garantía |
 | `shift` | string \| null | `'lunch' \| 'dinner'` |
-| `day_of_week` | string \| null | |
-| `sector` | string \| null | |
+| `day_of_week` | string \| null | Derivado de `visited_at` |
+| `sector` | string \| null | `sector_name` |
+| `channel` | string \| null | `SHARED_LINK`, `SEARCH_ENGINE`, `QUICK_ADD`, etc. |
 | `visit_type` | string | `'reservation' \| 'walkin'` |
 | `outcome` | string | `'completed' \| 'cancelled' \| 'no_show' \| 'pending'` |
 | `score` | number \| null | Siempre `null` con La Cabrera |
@@ -135,7 +160,38 @@ Tabla: `visits`.
 
 ### 2.4 `GuestProfile`
 
-Agregado denormalizado con el segmento ya resuelto. Campos core: `total_visits`, `total_no_shows`, `total_cancellations`, `first_visit_at`, `last_visit_at`, `days_since_last`, `avg_days_between_visits`, `avg_party_size`, `avg_amount`, `total_spent`, `avg_score`, `preferred_shift`, `preferred_day_of_week`, `preferred_sector`, `rfm_recency`, `rfm_frequency`, `rfm_monetary`, `rfm_score`, `segment`, `tier`, `calculated_at`.
+Agregado denormalizado del `GuestPartner` con el segmento ya resuelto. Campos core: `total_visits`, `total_no_shows`, `total_cancellations`, `first_visit_at`, `last_visit_at`, `days_since_last`, `avg_days_between_visits`, `avg_party_size`, `avg_amount`, `total_spent`, `avg_score`, `preferred_shift`, `preferred_day_of_week`, `preferred_sector`, `rfm_recency`, `rfm_frequency`, `rfm_monetary`, `rfm_score`, `segment`, `tier`, `calculated_at`.
+
+**Insights JSONB** (espejo de los JSON embebidos en el CSV, persistidos tal cual para no perder información):
+
+```ts
+interface GuaranteeInsights {
+  lastAt: string | null;
+  bookings: Array<{ date: string; amount: number; visitId: string }>;
+  totalAmount: number;
+  totalBookings: number;
+}
+
+interface CancellationInsights {
+  lastAt: string | null;
+  lastBy: 'GUEST' | 'VENUE' | null;
+  cancellations: Array<{ by: 'GUEST' | 'VENUE'; date: string; reason: string; visitId: string }>;
+  cancelledByGuest: number;
+  cancelledByVenue: number;
+  totalCancellations: number;
+}
+
+interface ReviewInsights { /* vacío en la muestra de La Cabrera */ }
+interface ChannelInsights {
+  channelMigrated: boolean;
+  directBookingRate: number;
+  lastBookingChannel: string | null;
+  firstBookingChannel: string | null;
+  preferredBookingChannel: string | null;
+}
+```
+
+Los `visitId` dentro de estos arrays son los **mismos strings** que `visits.external_visit_id` — ese es el puente para resolver "las visitas de un guest_partner" sin tener FK directa.
 
 Tipos derivados:
 
@@ -144,7 +200,7 @@ type Segment = 'lead' | 'new' | 'active' | 'at_risk' | 'dormant' | 'vip';
 type AudienceTier = 'vip' | 'frequent' | 'occasional';
 ```
 
-Tabla: `guest_profiles`. Constructor principal: [`lib/cdp.ts:cdpGuestPartnerToProfile`](../lib/cdp.ts) + [`lib/segmentation.ts:classifyGuests`](../lib/segmentation.ts) (TODO).
+Tabla: `guest_profiles` (con columnas JSONB `guarantee_insights`, `cancellation_insights`, `review_insights`, `channel_insights` a agregar al schema). Constructor principal: [`lib/cdp.ts:cdpGuestPartnerToProfile`](../lib/cdp.ts) + [`lib/segmentation.ts:classifyGuests`](../lib/segmentation.ts) (TODO).
 
 ### 2.5 `SegmentSummary`
 
@@ -409,11 +465,20 @@ Ingesta de los CSVs nativos de Woki (formato La Cabrera). Reemplaza `/api/upload
   ```
 - **Errores**: `400` archivos faltantes o headers inválidos · `500` error de DB.
 - **Notas de implementación**:
-  1. Parsear con [`lib/cdp.ts:parseCdpGuestPartnerCsv`](../lib/cdp.ts) y `parseCdpVisitCsv`.
+  1. Parsear `guest_partner_file` con [`lib/cdp.ts:parseCdpGuestPartnerCsv`](../lib/cdp.ts).
   2. Upsertar `restaurants` desde `DEFAULT_RESTAURANT`.
-  3. Insertar `guests` (dedupe por `guest_email`), guardando `guest_partner_id` externo para reconciliación.
-  4. Llamar [`cdpGuestPartnerToProfile`](../lib/cdp.ts) por row → upsert en `guest_profiles`.
-  5. Si viene `visit_file`, mapear estados a `visits.outcome` (ver §1) e insertar en batches.
+  3. Insertar `guests` (una fila por `guest_partner_id` externo, unique por `restaurant_id`), guardando el hash en `guest_partner_id`. **No dedupe** por email — la identidad real es la relación guest × partner.
+  4. Llamar [`cdpGuestPartnerToProfile`](../lib/cdp.ts) por row → upsert en `guest_profiles` incluyendo los JSONB de insights tal cual vienen del CSV.
+  5. **Construir el reverse-index** `{ external_visit_id → guest_id }` recorriendo los insights de cada guest_partner:
+     ```ts
+     for (const profile of profiles) {
+       for (const b of profile.guarantee_insights?.bookings ?? []) index.set(b.visitId, profile.guest_id);
+       for (const c of profile.cancellation_insights?.cancellations ?? []) index.set(c.visitId, profile.guest_id);
+       for (const r of profile.review_insights?.reviews ?? []) index.set(r.visitId, profile.guest_id);
+     }
+     ```
+  6. Si viene `visit_file`, parsear con `parseCdpVisitCsv`, mapear estados a `visits.outcome` (ver §1), setear `external_visit_id = row.visit_id`, `guest_id = index.get(row.visit_id) ?? null`, y `amount = row.has_guarantee ? row.guarantee_amount : null`. Insertar en batches.
+  7. Visits sin match en el index quedan con `guest_id = null` — son esperables y no rompen nada; siguen disponibles para analytics a nivel restaurant.
 
 #### `POST /api/analyze` 🔴
 
@@ -448,30 +513,63 @@ Diagnóstico: lee visits, calcula profiles + segmentos, devuelve summaries. Es e
 
 #### `GET /api/audience/guests` 🟡
 
+Lista de GuestPartners filtrable por segmento/tier.
+
 - **Query**:
   - `segment?: Segment`
   - `tier?: AudienceTier`
   - `limit?: number` (default `50`)
   - `offset?: number` (default `0`)
-- **Response**: `{ guests: GuestProfile[]; total: number }` (el `GuestProfile` viene con `guest` hidratado).
+- **Response**: `{ guests: GuestProfile[]; total: number }` (cada `GuestProfile` trae el `guest` — léase GuestPartner — hidratado).
 - **Estado**: hoy filtra sobre `MOCK_GUESTS`. Pendiente: query real con JOIN `guest_profiles ⟕ guests`.
 - **Implementación**: [`app/api/audience/guests/route.ts`](../app/api/audience/guests/route.ts).
 
-#### `GET /api/guests/[id]` ➕ 🔴
+#### `GET /api/guest-partners/[id]` ➕ 🔴
 
-Ficha 360 de un guest individual.
+Ficha 360 de un GuestPartner (guest × restaurante).
 
-- **Path**: `id = guest_id`.
+- **Path**: `id` = `guests.id` (uuid interno) o `guests.guest_partner_id` (hash externo del CSV). El handler acepta ambos y decide por heurística de formato.
 - **Response**:
   ```ts
   {
-    guest: Guest;
-    profile: GuestProfile | null;
-    visits: Visit[];           // ordenadas desc por visit_date
-    messages: Message[];       // últimos 20, ordenadas desc por created_at
+    guest_partner: Guest;            // fila de guests (name, email, language, tags, etc.)
+    profile: GuestProfile | null;    // agregados + segmento + insights JSON
+    messages: Message[];             // últimos 20, ordenados desc
   }
   ```
-- **Errores**: `404` guest no existe.
+- **Errores**: `404` GuestPartner no existe.
+- **Notas**: no incluye visits. Para eso → endpoint siguiente.
+
+#### `GET /api/guest-partners/[id]/visits` ➕ 🔴
+
+Resuelve las visitas asociadas a un GuestPartner usando los `visitId` embebidos en los insights JSON del `guest_profile`. Este endpoint es la **única** forma correcta de obtener "las visitas de un guest" en este producto (el visit CSV no tiene FK a guest).
+
+- **Path**: `id` = `guests.id` o `guest_partner_id`.
+- **Query**:
+  - `source?: 'bookings' | 'cancellations' | 'reviews' | 'all'` (default `'all'`) — filtrar por qué insight originó el link.
+  - `limit?: number` (default `200`)
+- **Response**:
+  ```ts
+  {
+    guest_partner_id: string;
+    visits: Array<Visit & { linked_via: 'bookings' | 'cancellations' | 'reviews' }>;
+    total: number;
+    unresolved_ids: string[];   // visitIds que estaban en los insights pero no matchean ninguna fila en visits
+  }
+  ```
+- **Errores**: `404` GuestPartner no existe.
+- **Notas de implementación**:
+  1. Cargar `guest_profiles` del GuestPartner (incluye las columnas JSONB `guarantee_insights`, `cancellation_insights`, `review_insights`).
+  2. Extraer los `visitId` de:
+     - `guarantee_insights.bookings[].visitId`
+     - `cancellation_insights.cancellations[].visitId`
+     - `review_insights.reviews[].visitId`
+     
+     Marcar cada uno con `linked_via` según de qué array salió.
+  3. Filtrar por `source` si viene en query.
+  4. `supabase.from('visits').select('*').in('external_visit_id', [...])`.
+  5. Ordenar por `visit_date` desc, aplicar `limit`.
+  6. `unresolved_ids` = los `visitId` que no encontraron fila (esperable si el `visit_file` se importó parcial o si la visit es más vieja que el rango del CSV).
 
 ### 3.3 Templates
 
@@ -696,14 +794,16 @@ Dónde cae cada endpoint en la pipeline del producto:
 │  POST /api/analyze          🔴      │   ← corre segmentación
 └──────────┬──────────────────────────┘
            ▼
-┌────── Audience ─────┐        ┌───── Trigger ─────┐
-│  GET  /api/audience │        │ POST /api/events  │
-│       /segments   🟡│        │      /trigger   🟡│
-│  GET  /api/audience │        │ GET  /api/events  │
-│       /guests     🟡│        │                ➕🔴│
-│  GET  /api/guests/  │        └─────────┬─────────┘
-│       [id]      ➕🔴 │                  │
-└──────────┬──────────┘                  │
+┌────── Audience ─────────────┐   ┌───── Trigger ─────┐
+│  GET  /api/audience         │   │ POST /api/events  │
+│       /segments           🟡│   │      /trigger   🟡│
+│  GET  /api/audience         │   │ GET  /api/events  │
+│       /guests             🟡│   │                ➕🔴│
+│  GET  /api/guest-partners/  │   └─────────┬─────────┘
+│       [id]              ➕🔴 │             │
+│  GET  /api/guest-partners/  │             │
+│       [id]/visits       ➕🔴 │             │
+└──────────┬──────────────────┘             │
            └────────────┬─────────────────┘
                         ▼
              ┌──── Campaign/Workflow ────┐
@@ -759,7 +859,7 @@ Alineado con [`HACKATHON_PLAN.md`](../HACKATHON_PLAN.md):
 4. **`POST /api/cdp/import`** — permite cargar los CSVs de La Cabrera directamente.
 5. **`POST /api/campaigns` + `POST /api/campaigns/[id]/run` + `POST /api/messages/[id]/approve`** — ciclo "aprobar y ejecutar" end-to-end.
 6. **`GET /api/revenue/attribution` + `GET /api/kpis`** — cierra el tracker de revenue en el dashboard.
-7. **Endpoints ➕ (`/api/guests/[id]`, `/api/messages/[id]/reject|regenerate`, `GET /api/events`)** — quality of life si sobra tiempo.
+7. **Endpoints ➕ (`/api/guest-partners/[id]`, `/api/guest-partners/[id]/visits`, `/api/messages/[id]/reject|regenerate`, `GET /api/events`)** — quality of life si sobra tiempo. El `/visits` es el que resuelve las visitas de un guest vía los `visitId` de los insights.
 
 ---
 
